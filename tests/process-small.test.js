@@ -99,6 +99,7 @@ describe('small process commands', () => {
     [['APP', '--formUuid', 'FORM', '--formUuid', 'FORM2', 'process.json'], '--formUuid', 'duplicate_option'],
     [['APP', '表单', 'fields.json', 'process.json', '--replace', '--replace'], '--replace', 'duplicate_option'],
     [['APP', '表单', 'fields.json', 'process.json', 'extra'], 'extra', 'unexpected_argument'],
+    [['APP', '表单', 'fields.json', 'process.json', '--seed-template'], 'process.json', 'unexpected_argument'],
   ])('create-process rejects invalid arguments before file access or authentication: %j', async (args, argument, reason) => {
     await expect(createProcess.run(args)).rejects.toMatchObject({
       code: 'CREATE_PROCESS_INVALID_ARGUMENTS', details: { argument, reason },
@@ -115,6 +116,15 @@ describe('small process commands', () => {
       .toMatchObject({ appType: 'APP', existingFormUuid: 'FORM', processDefinitionFile: 'process.json', replace: true });
     expect(createProcess.parseArgs(['APP', 'process.json', '--formUuid', 'FORM']))
       .toMatchObject({ appType: 'APP', existingFormUuid: 'FORM', processDefinitionFile: 'process.json', replace: false });
+  });
+
+  test('create-process uses the bundled originator approval definition in seed mode', async () => {
+    configureProcess.run.mockResolvedValueOnce({ success: true, processCode: 'TPROC_SEED', processVersion: 1 });
+    await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', '--seed-template']);
+    expect(configureProcess.run).toHaveBeenCalledWith(['APP_XXX', 'FORM_1'], {
+      suppressOutput: true,
+      processDefinition: { nodes: [{ type: 'approval', name: '本人审批', approver: 'originator' }] },
+    });
   });
 
   test('create-process reuses a form and delegates conversion and publishing to configure-process', async () => {
@@ -202,12 +212,15 @@ describe('small process commands', () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]), 'utf8');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    const defaultView = { viewUuid: 'VIEW_A', readbackVerified: false, mutationAccepted: true,
+      sideEffectState: 'accepted_unverified', causeCode: 'FORM_VIEW_READBACK_MISMATCH' };
     createForm.createFormForLegacyProcess.mockResolvedValueOnce({
       success: true,
       appType: 'APP_XXX',
       formUuid: 'FORM_CREATED',
       formTitle: '流程表单',
       fieldCount: 1,
+      defaultView,
     });
     configureProcess.run.mockResolvedValueOnce({
       success: true,
@@ -249,6 +262,7 @@ describe('small process commands', () => {
       formTitle: '流程表单',
       appType: 'APP_XXX',
       fieldCount: 1,
+      defaultView,
       processCode: 'TPROC_CREATED',
       processId: 202,
       processVersion: 1,

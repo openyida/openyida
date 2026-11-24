@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 const { setTimeout: delay } = require('timers/promises');
-const { parseLastJson } = require('../scripts/e2e-real/runner');
+const { extractJsonObjects } = require('../scripts/e2e-real/runner');
 
 const BIN = process.env.OPENYIDA_TEST_BIN || path.resolve(__dirname, '../bin/yida.js');
 const APP = 'APP_TEST';
@@ -49,6 +49,13 @@ function invoke(sandbox, args, options = {}) {
     if (error && typeof error.code !== 'number') { reject(error); }
     else { resolve({ code: error?.code || 0, stdout, stderr }); }
   }));
+}
+
+// Parallel requests can log to stderr after the CLI emits its structured failure.
+function readCliFailure(stderr) {
+  const failures = extractJsonObjects(stderr).filter(payload => payload.success === false);
+  expect(failures).toHaveLength(1);
+  return failures[0];
 }
 
 function respond(res, status, value) {
@@ -185,8 +192,7 @@ test('seed preserves bounded refresh diagnostics and sends no writes when refres
   await withSandbox(readFormList, async sandbox => {
     const result = await invoke(sandbox, seedArgs(sandbox.workspace));
     expect(result.code).toBe(1);
-    // A parallel preflight can still log an HTTP status after the JSON error.
-    const payload = parseLastJson(result.stderr);
+    const payload = readCliFailure(result.stderr);
     expect(payload.details.refreshFailure).toMatchObject({
       requestPath: expect.stringMatching(/\/(getFormNavigationListByOrder|getBindingByFormUuid)\.json$/),
       httpStatus: 401, refreshHttpStatus: 503, refreshErrorCode: 'service_unavailable',
@@ -200,7 +206,7 @@ test('seed preserves refresh-only failure details without a business request', a
   await withSandbox(readFormList, async sandbox => {
     const result = await invoke(sandbox, seedArgs(sandbox.workspace), { refreshOnly: true });
     expect(result.code).toBe(1);
-    const payload = parseLastJson(result.stderr);
+    const payload = readCliFailure(result.stderr);
     expect(payload.details.refreshFailure).toEqual({
       refreshPath: '/openapi/cli/v1/auth/refresh',
       refreshHttpStatus: 503,
@@ -222,7 +228,7 @@ test('list-forms keeps its ordinary OAuth top-level error code', async () => {
     const results = await Promise.all([1, 2].map(() => invoke(sandbox, ['list-forms', APP], { ordinaryOAuth: true })));
     for (const result of results) {
       expect(result.code).toBe(1);
-      const payload = JSON.parse(result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
+      const payload = readCliFailure(result.stderr);
       expect(payload.errorCode).toBe('CLI_COMMAND_FAILED');
       expect(payload.details?.refreshFailure).toBeUndefined();
     }
