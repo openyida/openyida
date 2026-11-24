@@ -511,10 +511,15 @@ describe('configure-process command runner', () => {
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
-  test('uses yida-client and returns the published process result', async () => {
+  test.each([false, true])('uses yida-client and returns the published process result (inline: %s)', async inline => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
     const definitionFile = path.join(tempDir, 'process.json');
-    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+    const definition = inline ? { nodes: [{ type: 'approval', name: '本人审批', approver: 'originator' }] } : { nodes: [] };
+    if (!inline) {fs.writeFileSync(definitionFile, JSON.stringify(definition));}
+    const observed = inline
+      ? { success: true, content: _private.buildProcessAndViewJson(
+        definition, 'TPROC_TEST', 'FORM_TEST', 'https://www.aliwork.com', 'APP_TEST').viewJson }
+      : platformView('FORM_TEST');
 
     const mockAuthRef = {
       baseUrl: 'https://www.aliwork.com',
@@ -534,7 +539,7 @@ describe('configure-process command runner', () => {
         success: true,
         content: { data: [{ id: 101, version: '4', status: 'PUBLISHED' }] },
       })
-      .mockResolvedValueOnce(platformView('FORM_TEST'));
+      .mockResolvedValueOnce(observed);
     const mockPostForm = jest.fn();
     const mockPostFormOnce = jest.fn()
       .mockResolvedValueOnce({ success: true, content: { processId: 101, processVersion: 4 } })
@@ -562,10 +567,10 @@ describe('configure-process command runner', () => {
     const result = await freshConfigureProcess.run([
       'APP_TEST',
       'FORM_TEST',
-      definitionFile,
+      ...(inline ? [] : [definitionFile]),
       'TPROC_TEST',
       '--replace',
-    ]);
+    ], inline ? { processDefinition: definition } : undefined);
 
     expect(result).toEqual({
       success: true,

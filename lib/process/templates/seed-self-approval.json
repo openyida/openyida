@@ -1,9 +1,0 @@
-{
-  "nodes": [
-    {
-      "type": "approval",
-      "name": "本人审批",
-      "approver": "originator"
-    }
-  ]
-}

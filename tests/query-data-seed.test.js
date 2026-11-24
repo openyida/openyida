@@ -216,7 +216,7 @@ test('changing to business approval between records leaves the next item ready a
   const write = utils.httpPost.getMockImplementation();
   utils.httpPost.mockImplementation(async (...args) => {
     const result = await write(...args);
-    viewJson.schema.children[1].props.approverRules.type = 'ext_target_approval_direct_leader';
+    viewJson.schema.children[1].props.approverRules.type = 'ext_target_direct_leader';
     return result;
   });
   await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_PROCESS_NOT_SELF_APPROVAL', details: {

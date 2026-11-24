@@ -121,10 +121,9 @@ describe('small process commands', () => {
   test('create-process uses the bundled originator approval definition in seed mode', async () => {
     configureProcess.run.mockResolvedValueOnce({ success: true, processCode: 'TPROC_SEED', processVersion: 1 });
     await createProcess.run(['APP_XXX', '--formUuid', 'FORM_1', '--seed-template']);
-    const [appType, formUuid, definitionFile] = configureProcess.run.mock.calls[0][0];
-    expect([appType, formUuid]).toEqual(['APP_XXX', 'FORM_1']);
-    expect(JSON.parse(fs.readFileSync(definitionFile, 'utf8'))).toMatchObject({
-      nodes: [{ type: 'approval', approver: 'originator' }],
+    expect(configureProcess.run).toHaveBeenCalledWith(['APP_XXX', 'FORM_1'], {
+      suppressOutput: true,
+      processDefinition: { nodes: [{ type: 'approval', name: '本人审批', approver: 'originator' }] },
     });
   });
 
