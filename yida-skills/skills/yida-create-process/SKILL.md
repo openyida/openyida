@@ -74,6 +74,8 @@ openyida create-process <appType> --formUuid <已有普通表单UUID> --seed-tem
 
 ## 输出与恢复
 
+新建流程时，默认列表的列顺序只保存一次并立即回读。若保存已受理但回读失败，CLI 继续发布流程，回执中的 `defaultView.readbackVerified=false` 表示列顺序待确认。`defaultView` 保留视图 ID、备份路径和错误码，可用 `form-view inspect` 复核。流程发布结果见 `processVersion` 和 `platformViewVerified`。
+
 成功以 `success=true`、`verificationLevel=PLATFORM_VIEW_VERIFIED`、`platformViewVerified=true` 为准。它证明平台配置回读通过；实际审批、字段编辑和通知按业务验收。
 
 ```json

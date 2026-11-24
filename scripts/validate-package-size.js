@@ -275,7 +275,7 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
-// The combined process sample and sandbox refresh changes measure 10,455,792 unpacked bytes.
+// Process sample safeguards and default-view readback together measure 10,461,568 unpacked bytes.
 const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.

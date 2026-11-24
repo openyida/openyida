@@ -40,7 +40,7 @@ beforeEach(() => {
   createYidaClient.mockReturnValue(client);
 });
 afterEach(() => { jest.restoreAllMocks(); fs.rmSync(dir, { recursive: true, force: true }); });
-const apply = () => configureCreatedFormView({ corpId: 'ding-test' }, 'APP_TEST', 'FORM_TEST');
+const apply = options => configureCreatedFormView({ corpId: 'ding-test' }, 'APP_TEST', 'FORM_TEST', options);
 
 test('saves the native server view and verifies title last, preserving unrelated configuration', async () => {
   const before = JSON.parse(JSON.stringify(config));
@@ -104,5 +104,28 @@ test.each(['ack-only', 'transport-failure'])('never claims success or replays un
   });
   await expect(apply()).rejects.toMatchObject({ details: { formUuid: 'FORM_TEST',
     stage: 'configureDefaultView', retrySafe: false } });
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
+test.each(['stale', 'read-error'])('process creation returns a pending receipt after one %s readback', async fault => {
+  client.postFormOnce.mockImplementationOnce(async () => {
+    client.postForm.mockClear();
+    if (fault === 'read-error') { client.postForm.mockRejectedValueOnce(new Error('connection lost')); }
+    return { success: true };
+  });
+  const pending = await apply({ allowPendingReadback: true });
+  expect(pending).toMatchObject({ viewUuid: 'VIEW_DATA', readbackVerified: false,
+    mutationAccepted: true, sideEffectState: 'accepted_unverified',
+    causeCode: fault === 'stale' ? 'FORM_VIEW_READBACK_MISMATCH' : 'FORM_VIEW_READBACK_FAILED' });
+  expect(JSON.parse(fs.readFileSync(pending.backupPath)).config).toEqual(config);
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+  expect(client.postForm).toHaveBeenCalledTimes(1);
+});
+
+test('process creation still fails on an unacknowledged view write', async () => {
+  client.postFormOnce.mockRejectedValueOnce(new Error('timeout'));
+  await expect(apply({ allowPendingReadback: true })).rejects.toMatchObject({
+    code: 'CREATE_FORM_DEFAULT_VIEW_FAILED', details: { sideEffectState: 'unknown', retrySafe: false },
+  });
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
