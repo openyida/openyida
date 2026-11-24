@@ -5,8 +5,10 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const { getAccessToken, tokenRefresh } = require('../lib/auth/token-auth');
+const { getBusinessContextFilePath, getSandboxTokenFilePath } = require('../lib/auth/token-store');
 const { ensureQwenWorkLogin } = require('../lib/auth/qwenwork-login');
 const { createYidaClient } = require('../lib/core/yida-client');
+const { httpGet, httpPost, requestNonIdempotentWithAuthPreflight } = require('../lib/core/utils');
 
 const OLD_ACCESS = 'fixture-old-access';
 const OLD_REFRESH = 'fixture_private_refresh_token';
@@ -49,7 +51,7 @@ describe('cloud sandbox token refresh', () => {
     fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 
-  async function startServer({ onRead, onRefresh = replyToken, accessToken = OLD_ACCESS }) {
+  async function startServer({ onRead, onRefresh = replyToken, onRetry, accessToken = OLD_ACCESS }) {
     server = http.createServer((request, response) => {
       const requestPath = new URL(request.url, 'http://localhost').pathname;
       if (request.method !== 'POST' || requestPath !== REFRESH_PATH) {
@@ -63,6 +65,8 @@ describe('cloud sandbox token refresh', () => {
         refreshTokens.push(JSON.parse(body).refreshToken);
         if (refreshTokens.length === 1) {
           onRefresh(response);
+        } else if (onRetry) {
+          onRetry(response);
         } else {
           reply(response, 400, { status: 'invalid_refresh_token' });
         }
@@ -202,6 +206,52 @@ describe('cloud sandbox token refresh', () => {
     expect(result.details).toMatchObject({ refreshHttpStatus: 503 });
     expect(result.details).not.toHaveProperty('refreshErrorCode');
     expect(JSON.stringify(result)).not.toContain(OLD_REFRESH);
+  });
+
+  test.each(['corpId', 'userId'])('rejects a changed %s before updating the sandbox session', async identityField => {
+    const get = await startServer({
+      onRead: (_request, response) => reply(response, 401, {}),
+      onRefresh: response => reply(response, 200, {
+        status: 'ok', accessToken: NEW_ACCESS, refreshToken: NEW_REFRESH,
+        baseUrl: 'https://different.example.test', [identityField]: 'different-identity',
+      }),
+    });
+    const result = await get('/form/list');
+    expect(result).toMatchObject({
+      errorCode: 'TOKEN_AUTH_REQUIRED',
+      details: { httpStatus: 401, refreshHttpStatus: 200, refreshErrorCode: 'sandbox_identity_changed' },
+    });
+    expect(JSON.stringify(result)).not.toContain('different-identity');
+    expect(fs.existsSync(getSandboxTokenFilePath({ projectRoot }))).toBe(false);
+    expect(fs.existsSync(getBusinessContextFilePath({ projectRoot }))).toBe(false);
+    expect(process.env.OPENYIDA_ACCESS_TOKEN).toBe(OLD_ACCESS);
+    expect(process.env.OPENYIDA_REFRESH_TOKEN).toBe(OLD_REFRESH);
+    expect(refreshTokens).toEqual([OLD_REFRESH]);
+  });
+
+  test('a failed refresh-only write preflight never attempts the write', async () => {
+    const requests = [];
+    await startServer({
+      accessToken: '',
+      onRead(request, response) {
+        requests.push(request.method);
+        reply(response, 200, { success: true });
+      },
+      onRefresh: response => reply(response, 503, { status: 'service_unavailable' }),
+      onRetry: replyToken,
+    });
+    const options = { projectRoot, silentStatus: true };
+    const authRef = { projectRoot, baseUrl: process.env.OPENYIDA_ENDPOINT, authMode: 'token' };
+    await expect(requestNonIdempotentWithAuthPreflight(
+      ref => httpPost(ref.baseUrl, '/create', '', options),
+      ref => httpGet(ref.baseUrl, '/preflight', null, options),
+      authRef
+    )).rejects.toMatchObject({
+      code: 'TOKEN_REFRESH_FAILED',
+      details: { refreshFailure: { refreshPath: REFRESH_PATH, refreshHttpStatus: 503, refreshErrorCode: 'service_unavailable' } },
+    });
+    expect(refreshTokens).toEqual([OLD_REFRESH]);
+    expect(requests).toEqual([]);
   });
 
   test.each(['refresh_timeout', 'refresh_interrupted'])('releases the lock after %s', async refreshErrorCode => {
