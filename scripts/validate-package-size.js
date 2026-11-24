@@ -274,7 +274,8 @@ const MAX_TARBALL_BYTES = 2800 * 1024;
 // Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
-const MAX_UNPACKED_BYTES = 10208 * 1024;
+// Form-view readback retries and guidance measure 10,454,456 unpacked bytes on CI.
+const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
