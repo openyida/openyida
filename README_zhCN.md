@@ -462,7 +462,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | 命令 | 说明 |
 |------|------|
 | `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace] [--json]` | 配置并发布流程规则; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
-| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json] \| create-process <appType> <formTitle> <fieldsJsonFile> --seed-template [--json] \| create-process <appType> --formUuid <formUuid> --seed-template [--json]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 | `openyida process fields <appType> <formUuid> [--json]` | 检查流程设计器字段加载和子表字段路径 |

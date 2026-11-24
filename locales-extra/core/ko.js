@@ -35,6 +35,8 @@ module.exports = {
     help: '--intl은 www.yidaapps.com을 선택합니다. --dingtalk domestic은 중국 버전(기본 .com), --dingtalk intl은 국제 버전(.io)입니다. 비대화형 호출은 중국 버전이 기본값입니다.',
   },
   data_seed: {
+    process_unverified: '게시된 워크플로 버전을 하나로 확인할 수 없어 예시 신청 제출을 중단했습니다.',
+    process_not_self_approval: '게시된 워크플로에서 신청자 본인만 승인하도록 설정되어 있지 않아 예시 신청 제출을 중단했습니다.',
     optional_notes: '표준 쓰기 컴포넌트는 seed를 사용합니다. 주소는 기본 국내 ADDRESS만 지원합니다. 미지원 선택 필드는 skippedFields에 표시하며, 모두 생략되면 레코드를 생성하지 않습니다.',
     failed: '예제 데이터 작업이 중지되었습니다: {0}. 상세 정보를 확인하고 쓰기를 시도한 레코드를 다시 생성하지 마세요.',
     notes: 'data seed form에는 --expect-form-name과 --records-file(1~30개 레코드)이 필요합니다. --check는 사전 검사만 수행합니다. 날짜는 밀리초 또는 ISO 문자열이며 기본 시차는 +08:00입니다. 각 레코드를 쓰고 다시 읽어 검증합니다. 입력 파일 옆에 결과를 저장하며 재실행 시 완료된 항목을 재사용하고 쓰기 결과가 불확실하면 중지합니다. 프로세스 seed는 data seed process와 --process-code를 사용하며 processInstanceIds를 반환하고 실제 승인을 시작합니다.',
