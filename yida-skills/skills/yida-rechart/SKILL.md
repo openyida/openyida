@@ -52,6 +52,8 @@ description: 自定义页面 Recharts 高级图表技能。使用 `YidaCodeCanva
 
 ## 推荐实现结构
 
+需要快速复用单个指标卡、趋势图、排行图或环形图时，先读取[可编程卡片组件模板](../yida-dashboard/references/programmable-cards.md#组件优先页面只是组合示例)，提取 `analysis-metric` / `analysis-chart`。它们是组件源码；`analysis-card-explorer` 仅用于多组件组合参考，不能把整页模板当作唯一复用粒度。
+
 先按[标准主题桥](../yida-canvas-custom-page/references/canvas-theme-provider.md)接入应用主题。下例采用脚本装配标记，合并业务后用真实主题 CSS 生成独立输出文件，再编译该输出；已有 Provider 时保留它，只替换业务部分。多业务系列使用项目分类色盘，目标参考线可用中性文字色和虚线区分。
 
 ```jsx
