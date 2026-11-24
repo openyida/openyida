@@ -202,12 +202,15 @@ describe('small process commands', () => {
     const processDefPath = path.join(tmpDir, 'process.json');
     fs.writeFileSync(fieldsPath, JSON.stringify([{ type: 'TextField', label: '姓名' }]), 'utf8');
     fs.writeFileSync(processDefPath, JSON.stringify({ nodes: [] }), 'utf8');
+    const defaultView = { viewUuid: 'VIEW_A', readbackVerified: false, mutationAccepted: true,
+      sideEffectState: 'accepted_unverified', causeCode: 'FORM_VIEW_READBACK_MISMATCH' };
     createForm.createFormForLegacyProcess.mockResolvedValueOnce({
       success: true,
       appType: 'APP_XXX',
       formUuid: 'FORM_CREATED',
       formTitle: '流程表单',
       fieldCount: 1,
+      defaultView,
     });
     configureProcess.run.mockResolvedValueOnce({
       success: true,
@@ -249,6 +252,7 @@ describe('small process commands', () => {
       formTitle: '流程表单',
       appType: 'APP_XXX',
       fieldCount: 1,
+      defaultView,
       processCode: 'TPROC_CREATED',
       processId: 202,
       processVersion: 1,

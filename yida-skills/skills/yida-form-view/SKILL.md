@@ -45,7 +45,9 @@ description: 宜搭原生数据管理视图配置。读取视图，配置列、�
 
 `create-form create`、`batch` 的新建步骤及 `resume` 会自动保存第一个原生表格视图的服务端默认显示列，将已显示的实例标题（`processInstanceTitle` 或 `formInstanceTitle`）排到最后一个数据列。其他列的显隐、相对顺序及筛选、排序、宽度、冻结等配置保留。默认列为 `"all"` 或未设置时，沿用平台可展示字段及 `showOrder`，保留可展示子表字段，排除平台不支持的组件。
 
-创建回执中的 `defaultView` 返回真实 `viewUuid`、`showFields`、`changed` 和 `readbackVerified`。只有服务端保存并回读通过才返回创建成功；这项默认行为不依赖 Agent 额外执行命令，也不写浏览器本地偏好。视图配置失败时保留已创建的 `formUuid`，用原 ID 执行 `create-form resume` 恢复，不重复新建表单。
+创建回执中的 `defaultView` 返回真实 `viewUuid`、`showFields`、`changed` 和 `readbackVerified`。普通表单只有服务端保存并回读通过才返回创建成功；这项默认行为不依赖 Agent 额外执行命令，也不写浏览器本地偏好。视图配置失败时保留已创建的 `formUuid`，用原 ID 执行 `create-form resume` 恢复，不重复新建表单。
+
+首次创建流程的默认视图保存已受理时，即使列顺序回读未确认也继续发布，回执标记 `defaultView.readbackVerified=false`。
 
 用户明确指定显示列或列顺序时，在创建成功后用 `form-view save` 保存用户配置并回读。已有表单及批量计划中明确复用的 `formUuid` 不自动调整，按本轮要求操作。浏览器已有的个人偏好可能覆盖服务端默认值，页面验收需区分两者。
 
