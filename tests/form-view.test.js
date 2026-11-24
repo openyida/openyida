@@ -235,7 +235,7 @@ test('reports a concurrent edit immediately without repeating the save', async (
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 
-test('readback mismatch is a failure even after a successful write acknowledgement', async () => {
+test('a persistent stale save fails verification after one read-only retry', async () => {
   client.postFormOnce.mockImplementationOnce(async () => {
     client.postForm.mockClear();
     return { success: true };
@@ -243,7 +243,7 @@ test('readback mismatch is a failure even after a successful write acknowledgeme
   await expect(execute(save({ defaultConfig: { widths: { name: 250 } } }), client)).rejects.toMatchObject({
     code: 'FORM_VIEW_READBACK_MISMATCH', details: { mutationAccepted: true, retrySafe: false, backupPath },
   });
-  expect(client.postForm).toHaveBeenCalledTimes(4);
+  expect(client.postForm).toHaveBeenCalledTimes(2);
   expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 

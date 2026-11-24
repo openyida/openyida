@@ -12,7 +12,7 @@ description: 宜搭原生数据管理视图配置。读取视图，配置列、�
 1. 按根技能核验登录和 app/form 上下文，复用已有表单。不要创建同名表单或用自定义页面替换原生列表。
 2. 执行 `openyida form-view list <appType> <formUuid> --with-config --json`，读取全部视图及 `staticConfig/defaultConfig`。选择返回的真实 `viewUuid`，不要猜测或把 `formUuid` 当作视图 ID。
 3. 执行 `openyida form-view inspect <appType> <formUuid> <viewUuid> --json`。消费 `fields[].id/operatorMap`、`config` 和 `configHash`；需要业务字段身份时同时使用 `get-schema --compact --resolve-fields`。操作符大小写与平台返回一致，不猜测 `eq/EQ`。
-4. 将本轮最小配置写到项目缓存 JSON 文件；执行 `openyida form-view save <appType> <formUuid> <viewUuid> --config <file> --expected-hash <configHash> --json`。CLI 先备份，再保存一次并回读。若仍读到保存前的配置，CLI 最多追加三次只读校验。仅 `readbackVerified=true` 为配置成功。
+4. 将本轮最小配置写到项目缓存 JSON 文件；执行 `openyida form-view save <appType> <formUuid> <viewUuid> --config <file> --expected-hash <configHash> --json`。CLI 先备份，再保存一次并回读。若仍读到保存前的配置，CLI 等待 100 毫秒，再回读一次。仅 `readbackVerified=true` 为配置成功。
 5. 打开真实数据管理页，验证列顺序、宽度、冻结、筛选、横向滚动及记录。个人浏览器视图偏好可能覆盖管理员默认配置，不能仅凭 API 回读宣称浏览器验收通过。
 
 ## 配置映射
