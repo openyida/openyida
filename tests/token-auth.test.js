@@ -16,6 +16,7 @@ const {
   getBusinessContextFilePath,
   getUserProfileFilePath,
   getTokenFilePath,
+  getSandboxTokenFilePath,
   listUserAuthProfiles,
   loadTokenSession,
   saveTokenSession,
@@ -506,7 +507,7 @@ describe('token-auth', () => {
     }
   });
 
-  test('env token refresh writes project cache and caches returned business base_url', async () => {
+  test('env token refresh writes a binding cache and caches returned business base_url', async () => {
     let refreshBody;
     const server = http.createServer((req, res) => {
       const chunks = [];
@@ -547,15 +548,15 @@ describe('token-auth', () => {
 
       expect(refreshBody.refreshToken).toBe('env-refresh-token');
       expect(refreshed).toMatchObject({
-        auth_source: 'project_legacy',
-        auth_store: 'project_cache',
+        auth_source: 'env',
+        auth_store: 'sandbox_cache',
         access_token: 'new-env-access-token',
         refresh_token: 'new-env-refresh-token',
         corp_name: '环境组织',
       });
       expect(env.OPENYIDA_ACCESS_TOKEN).toBe('new-env-access-token');
       expect(env.OPENYIDA_REFRESH_TOKEN).toBe('new-env-refresh-token');
-      const tokenFile = getTokenFilePath({ projectRoot: tmpDir });
+      const tokenFile = getSandboxTokenFilePath({ projectRoot: tmpDir, authDir, env });
       expect(fs.existsSync(tokenFile)).toBe(true);
       expect(JSON.parse(fs.readFileSync(tokenFile, 'utf8'))).toMatchObject({
         access_token: 'new-env-access-token',
@@ -586,7 +587,8 @@ describe('token-auth', () => {
       })).toMatchObject({
         base_url: 'https://customer.example.com',
         refresh_token: 'new-env-refresh-token',
-        auth_source: 'project_legacy',
+        auth_source: 'env',
+        auth_store: 'sandbox_cache',
       });
       expect(loadTokenSession({
         projectRoot: tmpDir,
