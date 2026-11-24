@@ -1,10 +1,10 @@
 # 流程 seed 编排
 
-需要流程示例时，按以下顺序准备 1–3 条业务记录。发起真实申请和本人待办属于本轮示例范围；沿用用户已确认的范围和组织。用户要求不造数或缺少授权时，配置最终业务流程，页面显示“暂无数据”。
+已确认的搭建范围包含流程示例和本人待办时，按以下顺序准备 1–3 条业务记录。用户要求不造数、范围未包含流程示例或缺少授权时，配置最终业务流程，页面显示“暂无数据”。
 
 ## 操作顺序
 
-1. 用 `yida-create-process` 直接创建流程表单；临时定义只含一个 `approval` 节点，`approver: "originator"`。使用创建回执的 `formUuid/processCode/fields/processVersion`。
+1. 用 `yida-create-process` 的 `create-process … --seed-template --json` 首次发布临时流程。模板只含一个 `approval` 节点，`approver: "originator"`。使用创建回执的 `formUuid/processCode/fields/processVersion`，业务审批定义另存为最终发布的输入。
 2. 将真实字段 ID 和业务值写入一份 records 数组，执行：
 
 ```bash
@@ -12,6 +12,7 @@ openyida data seed process <appType> <formUuid> --process-code <真实processCod
 ```
 
 3. 核对 `completed/readbackVerified/requestedFieldsVerified`，按 `items[].recordIndex` 直接消费 `processInstanceId`，流程关联使用 `formType:"process"`。日期、子表、可选字段和回执恢复与[普通 seed](../SKILL.md#一次写入普通表单示例记录)共用规则；`--check` 只预检。已有核验回执用于字段验收，页面验收继续读取真实记录。
+   - CLI 在每条新写入前读取已发布流程。遇到主管、其他节点或无法核实的版本时，按 `DATA_SEED_PROCESS_NOT_SELF_APPROVAL` 或 `DATA_SEED_PROCESS_UNVERIFIED` 停止本批新写入。保留回执和已写入实例，既有业务审批已发布时跳过剩余示例。禁止使用 `data create process` 或其他写入口绕过流程 seed 预检。
 4. 加载 `yida-process-rule`，在同一流程上编辑完整业务节点、审批人、条件和字段权限；保存最终定义，按已确认的临时到最终编辑范围执行 `configure-process ... --replace`，由 CLI 保存、发布并回读。已有 mock 使用旧流程版本，新申请使用最终版本。
 
 被关联的流程表单先完成创建和 seed，再创建依赖普通表单；关联定义显式填写最终 `formType:"process"`、真实表单和标题字段。普通表单到流程的转换继续使用 `create-process --formUuid`；历史普通记录保持原类型和 ID，审批状态以实际返回为准。

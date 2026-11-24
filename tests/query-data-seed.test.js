@@ -12,6 +12,7 @@ jest.mock('../lib/app/form-navigation', () => ({ fetchFormPageList: jest.fn() })
 const { run } = require('../lib/core/query-data');
 const utils = require('../lib/core/utils');
 const modes = require('../lib/app/services/form-mode-service');
+const { buildProcessAndViewJson } = require('../lib/process/services/process-compiler');
 const navigation = require('../lib/app/form-navigation');
 let dir, source, log, schema, saved;
 const invoke = (extra = []) => run(['seed', 'form', 'APP_TEST', 'FORM-TEST', '--expect-form-name', '客户', '--records-file', source, '--json', ...extra]);
@@ -133,13 +134,20 @@ function processSeed(extra = []) {
     '--expect-form-name', '客户', '--records-file', source, '--json', ...extra]);
 }
 
-function mockProcess() {
+function mockProcess(approver = 'originator') {
   navigation.fetchFormPageList.mockResolvedValue([{ formUuid: 'FORM-TEST', formName: '客户', formType: 'process' }]);
   modes.readFormMode.mockResolvedValue({ mode: 'process', processCode: 'PROC' });
-  utils.httpGet.mockImplementation(async (_base, url, params) => url.includes('getFormSchema') ? schema : {
-    success: true, content: { processInstanceId: params.processInstanceId, formUuid: 'FORM-TEST',
-      processCode: 'PROC', data: saved.get(params.processInstanceId) },
+  const { viewJson } = buildProcessAndViewJson({ nodes: [{ type: 'approval', name: '审批', approver }] },
+    'PROC', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+  const versions = [{ id: 101, processVersion: 1, status: 'PUBLISHED' }];
+  utils.httpGet.mockImplementation(async (_base, url, params) => {
+    if (url.includes('getFormSchema')) {return schema;}
+    if (url.includes('pageProcessVersion')) {return { success: true, content: { data: versions } };}
+    if (url.includes('getProcessById')) {return { success: true, content: viewJson };}
+    return { success: true, content: { processInstanceId: params.processInstanceId, formUuid: 'FORM-TEST',
+      processCode: 'PROC', data: saved.get(params.processInstanceId) } };
   });
+  return { viewJson, versions };
 }
 
 test('process seed converts dates, verifies process IDs and resumes without new applications', async () => {
@@ -166,7 +174,7 @@ test('process code and resource type must match before starting an application',
 test('process readback checks both workflow binding and submitted business fields', async () => {
   mockProcess();
   const original = utils.httpGet.getMockImplementation();
-  utils.httpGet.mockImplementation(async (...args) => args[1].includes('getFormSchema') ? schema : {
+  utils.httpGet.mockImplementation(async (...args) => !args[1].includes('getInstanceById') ? original(...args) : {
     success: true, content: { processInstanceId: args[2].processInstanceId, formUuid: 'FORM-TEST',
       processCode: 'OTHER', data: saved.get(args[2].processInstanceId) },
   });
@@ -183,6 +191,51 @@ test('process --check validates without starting applications or creating a rece
   await processSeed(['--check']);
   expect(utils.httpPost).not.toHaveBeenCalled();
   expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);
+});
+
+test.each([false, true])('process seed blocks published manager approval (check: %s)', async check => {
+  mockProcess({ type: 'directLeader' });
+  await expect(processSeed(check ? ['--check'] : [])).rejects.toMatchObject({ code: 'DATA_SEED_PROCESS_NOT_SELF_APPROVAL',
+    details: { sideEffectState: 'none', processVersion: 1 } });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+  expect(fs.existsSync(`${source}.seed-receipt.json`)).toBe(false);
+});
+
+test('process seed rejects ambiguous or missing published versions without reading a draft', async () => {
+  const { versions } = mockProcess();
+  versions.push({ id: 202, processVersion: 2, status: 'PUBLISHED' });
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_PROCESS_UNVERIFIED' });
+  versions.length = 0;
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_PROCESS_UNVERIFIED' });
+  expect(utils.httpGet.mock.calls.some(call => call[1].includes('getProcessById'))).toBe(false);
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('changing to business approval between records leaves the next item ready and preserves the first ID', async () => {
+  const { viewJson } = mockProcess();
+  const write = utils.httpPost.getMockImplementation();
+  utils.httpPost.mockImplementation(async (...args) => {
+    const result = await write(...args);
+    viewJson.schema.children[1].props.approverRules.type = 'ext_target_direct_leader';
+    return result;
+  });
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_PROCESS_NOT_SELF_APPROVAL', details: {
+    sideEffectState: 'committed', completed: 1, failedIndex: 1,
+    items: [{ status: 'verified', processInstanceId: 'ID-1' }, { status: 'ready' }],
+  } });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+test('a receipt with an accepted ID can be read back after final approval is published', async () => {
+  mockProcess();
+  fs.writeFileSync(source, JSON.stringify([{ textField_name: '客户' }]));
+  const read = utils.httpGet.getMockImplementation();
+  utils.httpGet.mockImplementation(async (...args) => args[1].includes('getInstanceById') ? { success: false } : read(...args));
+  await expect(processSeed()).rejects.toMatchObject({ code: 'DATA_SEED_INCOMPLETE' });
+  mockProcess({ type: 'directLeader' });
+  await processSeed();
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ completed: 1, processInstanceIds: ['ID-1'] });
 });
 
 test('process seed requires a process code before auth', async () => {
