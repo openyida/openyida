@@ -59,7 +59,7 @@ openyida create-app --name <appName> [--desc <description>] [--json]
 openyida update-app <appType> --theme-file <app-theme.css> --nav-theme <light|dark> --logo-source appIcon --layout <side|top|l_shape>
 ```
 
-创建成功后，从返回的 JSON 中提取 `appType`。
+创建成功后，从返回的 JSON 中提取 `appType`。`update-app` 成功时默认输出 JSON 回执，不接受 `--json` 参数。上传主题时保留完整回执，核对 `themeCompletion.complete` 和本次请求的导航设置。
 
 ### 新建应用的主题结果
 
