@@ -156,7 +156,10 @@ test.each(loadThemeIndex().themes.filter(theme => theme.mode === 'template'))('$
   const instantiated = paired.replace(/^([ \t]*)(--[\w-]+)(\s*:\s*)([^;\n]+);/gm,
     (line, indent, name, separator, value) => /\{\{|<生成实际色值：/.test(value)
       ? `${indent}${name}${separator}${tokens[name]};` : line);
-  expect(css).toBe(`/* openyida-theme-source: ${theme.themeId} */\n${instantiated}`);
+  const bridged = require('../lib/app/mobile-brand-tokens').bridgePrimaryBrand(instantiated);
+  expect(css.startsWith(`/* openyida-theme-source: ${theme.themeId} */\n${bridged.trimEnd()}`)).toBe(true);
+  expect(css).toContain('--pod-chart-axis-line-color:');
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-th-bg: var\(--color-fill1-2, #f6f7f9\);/);
   const rules = topLevelRules(css);
   const compiledRules = topLevelRules(compiled);
   const canonical = value => value.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
@@ -196,6 +199,98 @@ test('paired generation retains external variables, transparent surfaces and ori
       expect(css).toContain('--pod-nav-menu-item-selected-shadow: var(--shadow-1);');
     }
     if (id === 'ink-glow-soft-panels') {expect(css).toContain('--oyd-page-bg: rgba(255, 255, 255, 0);');}
-    if (['soft-inset-surfaces', 'soft-outline-rhythm'].includes(id)) {expect(css).not.toContain('--color-group:');}
+    if (['soft-inset-surfaces', 'soft-outline-rhythm'].includes(id)) {expect(css).toContain('--color-group: var(--color-brand-3), #3471ea, #a55bf5, #da66c3, #fc7d29, #ffbc20;');}
   }
+});
+
+test('report and portal theme defaults preserve authored values and stay idempotent', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const existing = ':root { --pod-card-padding: 0px; --pod-chart-font-size: 17px; --pod-page-bg-image: linear-gradient(#eef8f2, #fff); --pod-page-bg-color: #fff; }\n.custom { --table-th-bg: #fff; }';
+  const css = applyReportThemeTokens(existing);
+  expect(css.startsWith(existing)).toBe(true);
+  expect(css.match(/--pod-card-padding:/g)).toHaveLength(1);
+  expect(css.match(/--pod-chart-font-size:/g)).toHaveLength(1);
+  expect(css.match(/--table-th-bg:/g)).toHaveLength(1);
+  expect(css).toContain('--pod-chart-grid-line-color:');
+  expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
+  expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
+  expect(css).toContain('--pod-card-mobile-padding: 16px;');
+  expect(css).toContain('--pod-card-mobile-border-radius: 16px;');
+  expect(css).toContain('--pod-page-mobile-margin: 16px;');
+  expect(css).toContain('--pod-card-mobile-spacing: 10px;');
+  expect(css).toContain('--pod-form-mobile-row-gap: 16px;');
+  expect(css).toContain('--pod-card-border-radius: 20px;');
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--pod-table-border-radius: 6px;/);
+  expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
+  expect(applyReportThemeTokens(css)).toBe(css);
+  const overrides = ':root { --pod-page-mobile-margin: 24px; --pod-card-mobile-padding: 0px; --pod-card-mobile-spacing: 6px; --pod-form-mobile-row-gap: 0px; --pod-table-border-radius: 0px; }';
+  const custom = applyReportThemeTokens(overrides);
+  expect(custom.startsWith(overrides)).toBe(true);
+  expect(custom.match(/--pod-page-mobile-margin:/g)).toHaveLength(1);
+  expect(custom.match(/--pod-table-border-radius:/g)).toHaveLength(1);
+  for (const name of ['--pod-card-mobile-padding', '--pod-card-mobile-spacing', '--pod-form-mobile-row-gap']) {
+    expect(custom.match(new RegExp(name + ':', 'g'))).toHaveLength(1);
+  }
+  expect(applyReportThemeTokens(custom)).toBe(custom);
+});
+
+test('all paired themes generate current mobile spacing while retaining authored overrides', () => {
+  for (const theme of loadThemeIndex().themes.filter(item => item.mode === 'template')) {
+    const markdown = resolveThemeColors(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8')
+      .replaceAll('{{PRIMARY_COLOR}}', '#245B57'));
+    const css = generateThemeCss(markdown);
+    for (const [name, value] of Object.entries({
+      '--pod-page-mobile-margin': '16px', '--pod-card-mobile-padding': '16px',
+      '--pod-card-mobile-spacing': '10px', '--pod-form-mobile-row-gap': '16px',
+      '--pod-card-mobile-border-radius': '16px',
+    })) {
+      expect(css).toContain(`${name}: ${value};`);
+    }
+    const { metadata, body } = parseDesignDocument(markdown);
+    metadata.tokens.mobileSpacing = {
+      '--pod-page-mobile-margin': '24px', '--pod-card-mobile-padding': '0px',
+      '--pod-card-mobile-spacing': '6px', '--pod-form-mobile-row-gap': '0px',
+      '--pod-card-mobile-border-radius': '0px',
+    };
+    const updated = generateThemeCss(serializeDesignDocument(metadata, body), css, markdown);
+    for (const [name, value] of Object.entries(metadata.tokens.mobileSpacing)) {
+      expect(updated).toContain(`${name}: ${value};`);
+    }
+  }
+});
+
+test('generated themes fill mobile aliases and keep authored categorical palettes', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const input = ':root { --color-brand1-6: #147d73; --color-group: #147d73, #ffbc20; }';
+  const css = applyReportThemeTokens(input);
+  for (const [index, slot] of [10, 1, 6, 9].entries()) {
+    expect(css).toContain(`--color-brand-${index + 1}: var(--color-brand1-${slot});`);
+  }
+  expect(css.match(/--color-group:/g)).toHaveLength(1);
+  expect(css).toContain('--color-group: #147d73, #ffbc20;');
+  expect(applyReportThemeTokens(css)).toBe(css);
+});
+
+test('generated primary bridge repairs stale mobile colors and preserves local palettes', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const input = ':root { --color-brand1-6: #897253; --color-brand-3: #2563EB; }\n'
+    + '.component { --color-brand-3: #FF0000; }';
+  const css = applyReportThemeTokens(input);
+  expect(css).toContain('--color-brand1-6: #897253; --color-brand-3: var(--color-brand1-6);');
+  expect(css).toContain('.component { --color-brand-3: #FF0000; }');
+  expect(applyReportThemeTokens(css)).toBe(css);
+  const updated = applyReportThemeTokens(css.replace('#897253', '#245B57'));
+  expect(updated).toContain('--color-brand1-6: #245B57; --color-brand-3: var(--color-brand1-6);');
+});
+
+test('changing a paired template primary keeps mobile colors linked across regeneration', () => {
+  const theme = loadThemeIndex().themes.find(item => item.themeId === 'app-platinum');
+  const original = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
+  const design = original.replace('"--color-brand1-6": "#897253"', '"--color-brand1-6": "#2563EB"');
+  const css = generateThemeCss(design);
+  const { rootDeclarations } = require('../lib/core/theme-brand-scale');
+  const tokens = rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+  expect(tokens['--color-brand1-6']).toBe('#2563EB');
+  expect(tokens['--color-brand-3']).toBe('var(--color-brand1-6)');
+  expect(generateThemeCss(design, css, design)).toBe(css);
 });

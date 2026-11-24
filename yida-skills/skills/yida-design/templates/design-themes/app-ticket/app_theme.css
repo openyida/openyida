@@ -143,7 +143,7 @@
   --pod-page-border: 1px solid var(--color-line1-1, #efefef);
   --pod-page-border-radius: 0px;
   --pod-page-padding: 20px;
-  --pod-page-mobile-margin: 12px;
+  --pod-page-mobile-margin: 16px;
   --pod-page-mobile-padding: 12px;
   --pod-page-with-side-nav-margin: 0px;
   --pod-page-auto-width-margin: 8px;
@@ -155,7 +155,12 @@
 
   /* 卡片 */
   --pod-card-padding: 20px;
-  --pod-card-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-card-mobile-padding: 16px;
+  --pod-card-mobile-border-radius: 16px;
+  --pod-card-mobile-spacing: 10px;
+  --pod-form-mobile-row-gap: 16px;
+  --pod-card-border-radius: 20px;
+  --pod-card-mobile-border: var(--pod-card-border, none);
   --pod-card-border: none;
   --pod-card-spacing: var(--pod-md-gap-pad-margin);
 
@@ -326,6 +331,9 @@
   --pod-formView-stickyFooter-height: 56px;
   --pod-formView-stickyFooter-bottom: 8px;
   --pod-page-footer-bg-color: #fff2d5;
+  --pod-page-footer-mobile-border: none;
+  --pod-page-footer-bg-opacity: 90%;
+  --pod-page-footer-backdrop-filter: blur(16px);
   --pod-page-footer-border-radius: 0px;
 
   /* 数据管理与表格 */
@@ -350,7 +358,7 @@
     rgba(255, 255, 255, 0.37) 0%,
     rgba(255, 255, 255, 0.43) 72%
   );
-  --pod-drawer-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-drawer-border-radius: 20px;
   --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
   --dialog-corner: var(--corner-4);
 

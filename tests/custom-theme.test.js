@@ -9,14 +9,34 @@ const {
   normalizeThemeColor,
   normalizeCssColorToHex,
   extractThemeColor,
+  readThemeCssFile,
   unwrapUploadResponse,
   buildCustomThemeStyle,
   uploadCustomThemeFile,
 } = require('../lib/app/custom-theme');
 
+describe('application primary color bridge', () => {
+  const fs = require('fs'), os = require('os');
+  let directory;
+  beforeEach(() => {directory = fs.mkdtempSync(path.join(os.tmpdir(), 'oyd-brand-bridge-'));});
+  afterEach(() => fs.rmSync(directory, { recursive: true, force: true }));
+  test.each(['var(--color-brand1-6)', '#897253', 'rgb(137, 114, 83)'])('accepts equivalent mobile primary %s', value => {
+    const file = path.join(directory, 'app_theme.css');
+    fs.writeFileSync(file, `:root {${buildBrandScale({ '--color-brand1-6': '#897253', '--color-brand-3': value })}}`);
+    expect(readThemeCssFile(file).themeColor).toBe('#897253');
+  });
+  test('blocks divergent primary colors before any upload', () => {
+    const file = path.join(directory, 'app_theme.css');
+    fs.writeFileSync(file, `:root {${buildBrandScale({ '--color-brand1-6': '#2563EB', '--color-brand-3': '#897253' })}}`);
+    expect(() => readThemeCssFile(file)).toThrow(expect.objectContaining({ code: 'THEME_BRAND_SCALE_INVALID',
+      details: expect.objectContaining({ issues: expect.arrayContaining([expect.objectContaining({ reason: 'PRIMARY_BRAND_MISMATCH' })]) }) }));
+  });
+});
+
 function buildBrandScale(overrides = {}) {
   return REQUIRED_APPLICATION_BRAND_TOKENS
-    .map((token, index) => `    ${token}: ${overrides[token] || `rgb(${index + 1}, ${index + 2}, ${index + 3})`};`)
+    .map((token, index) => `    ${token}: ${overrides[token] || (token === '--color-brand-3'
+      ? 'var(--color-brand1-6)' : `rgb(${index + 1}, ${index + 2}, ${index + 3})`)};`)
     .join('\n');
 }
 

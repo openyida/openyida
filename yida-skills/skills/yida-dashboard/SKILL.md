@@ -87,7 +87,7 @@ metadata:
 
 自定义页面入口：
 
-- `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。
+- Plan 与已有文档任务由 `prd.md` 决定页面目标、指标、区块和交互，`design.md` 决定主题、布局和视觉状态；`page-spec.json` 只作为生成器需要时的派生输入。Fast 直接沿用已确认业务、当前任务的主题与页面安排，不为看板补造这些文件。
 - 主题与配色统一由 `yida-design` 确定，沿用已确认的项目设计；不得按业务关键词套固定看板色盘。
 - 用户强调“大屏 / 指挥舱 / 实时监控”时使用 `screen` 场景；普通经营看板使用 `dashboard` 场景。
 - `.canvas.jsx` 编译与发布细节以 `yida-canvas-custom-page` 为准；不要把 `openyida check-page`、`.oyd.jsx` 或 `renderJsx` 写成默认步骤。

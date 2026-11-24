@@ -213,3 +213,6 @@ Plan 从最终设计生成 PRD 的 `applicationTheme`。Fast 将 `fast-theme` �
 
 
 应用级主题上传仅在确认新版主题能力时自动执行。旧主题或能力未知时，先按 [旧主题注入与停用规则](application-style-library.md#旧主题应用的样式作用域与确认) 设计页面局部样式；应用层注入必须取得目标应用的明确用户确认，不得自动追加确认参数。用户要求去掉应用中的 appCustomTheme 时使用 `update-app --disable-custom-theme`，保留资源配置和品牌色并回读核验布尔值 false。
+## 跨端品牌主色
+
+以 `--color-brand1-6` 为源，移动端使用 `--color-brand-3: var(--color-brand1-6)`。生成时桥接，上传时校验；保留局部配色。
