@@ -1744,7 +1744,7 @@ describe('OpenYida skill contracts', () => {
     expect(customThemeTemplate).toContain('--design-file <design.md> --output <app-theme.css>');
     expect(customThemeTemplate).toContain('不要补造 4、7、8');
     expect(customThemeTemplate).toContain('--pod-default-border-radius: 20px;');
-    expect(customThemeTemplate).toContain('--pod-page-border-radius: var(--pod-xl-border-radius, 20px);');
+    expect(customThemeTemplate).toContain('--pod-page-border-radius: var(--corner-5, 20px);');
     expect(customThemeTemplate).toContain('--pod-xl-border-radius: var(--corner-5);');
     expect(customThemeTemplate).toContain('--color-brand1-5: rgba(52, 50, 44, 1);');
     expect(customThemeTemplate).not.toContain('openyida create-app');

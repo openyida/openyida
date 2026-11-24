@@ -38,7 +38,7 @@ test('generated defaults follow platform palette and glass footer while preservi
   expect(tokens(result)['--pod-page-footer-mobile-border']).toBe('none');
   expect(tokens(result)['--pod-page-footer-bg-opacity']).toBe('90%');
   expect(tokens(result)['--pod-page-footer-backdrop-filter']).toBe('blur(16px)');
-  expect(tokens(result)['--pod-drawer-border-radius']).toBe('20px');
+  expect(tokens(result)['--pod-drawer-border-radius']).toBe('var(--corner-5, 20px)');
   const overrides = ':root { --pod-chart-colors: red, blue; --pod-page-footer-mobile-border: 1px solid red; --pod-page-footer-bg-opacity: 70%; --pod-page-footer-backdrop-filter: none; }';
   const custom = tokens(applyReportThemeTokens(overrides));
   expect(custom['--pod-chart-colors']).toBe('red, blue');

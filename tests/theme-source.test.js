@@ -14,6 +14,23 @@ const { resolveThemeColors } = require('../lib/design-plan/themes');
 const { topLevelRules } = require('../lib/app/theme-scope');
 const rules = '\n.template-floating-rail { border-radius: 16px; box-shadow: 0 2px 8px #0003; }\n.template-divider::before { display: none; }\n';
 const projectRule = '\n.project-help { padding: 17px; }\n';
+
+test('missing radius defaults follow the shared scale and retain authored overrides', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const { rootDeclarations } = require('../lib/core/theme-brand-scale');
+  const css = applyReportThemeTokens(':root { --corner-1: 6px; --corner-3: 9px; --pod-card-border-radius: 0px; }');
+  const tokens = rootDeclarations(css);
+  expect(tokens['--corner-1']).toBe('6px');
+  expect(tokens['--corner-3']).toBe('9px');
+  for (const step of [2, 4, 5, 6]) {
+    expect(tokens[`--corner-${step}`]).toBe(`calc(var(--corner-1) * ${step})`);
+  }
+  expect(tokens['--pod-card-border-radius']).toBe('0px');
+  expect(tokens['--pod-page-border-radius']).toBe('var(--corner-5, 20px)');
+  expect(tokens['--pod-drawer-border-radius']).toBe('var(--corner-5, 20px)');
+  expect(tokens['--pod-card-mobile-border-radius']).toBe('var(--corner-4, 16px)');
+  expect(applyReportThemeTokens(css)).toBe(css);
+});
 let directory;
 
 function planFor(themeId = 'soft-outline-rhythm') {
@@ -215,11 +232,11 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
   expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
   expect(css).toContain('--pod-card-mobile-padding: 16px;');
-  expect(css).toContain('--pod-card-mobile-border-radius: 16px;');
+  expect(css).toContain('--pod-card-mobile-border-radius: var(--corner-4, 16px);');
   expect(css).toContain('--pod-page-mobile-margin: 16px;');
   expect(css).toContain('--pod-card-mobile-spacing: 10px;');
   expect(css).toContain('--pod-form-mobile-row-gap: 16px;');
-  expect(css).toContain('--pod-card-border-radius: 20px;');
+  expect(css).toContain('--pod-card-border-radius: var(--corner-5, 20px);');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--pod-table-border-radius: 6px;/);
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
   expect(applyReportThemeTokens(css)).toBe(css);

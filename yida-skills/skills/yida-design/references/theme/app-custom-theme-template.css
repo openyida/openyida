@@ -101,10 +101,11 @@
   /* 圆角 */
   --corner-zero: 0px;
   --corner-1: 4px;
-  --corner-2: 8px;
-  --corner-3: 12px;
-  --corner-4: 16px;
-  --corner-5: 20px;
+  --corner-2: calc(var(--corner-1) * 2);
+  --corner-3: calc(var(--corner-1) * 3);
+  --corner-4: calc(var(--corner-1) * 4);
+  --corner-5: calc(var(--corner-1) * 5);
+  --corner-6: calc(var(--corner-1) * 6);
   --corner-circle: 50%;
   --corner-semicircle: 500px;
 
@@ -142,7 +143,7 @@
   --pod-page-surface-border-radius: 12px;
   --pod-page-surface-shadow: none;
   --pod-page-border: 1px solid var(--color-line1-1, #efefef);
-  --pod-page-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-page-border-radius: var(--corner-5, 20px);
   --pod-page-padding: 20px;
   --pod-page-mobile-margin: 16px;
   --pod-page-mobile-padding: 12px;
@@ -157,10 +158,10 @@
   /* 卡片 */
   --pod-card-padding: 20px;
   --pod-card-mobile-padding: 16px;
-  --pod-card-mobile-border-radius: 16px;
+  --pod-card-mobile-border-radius: var(--corner-4, 16px);
   --pod-card-mobile-spacing: 10px;
   --pod-form-mobile-row-gap: 16px;
-  --pod-card-border-radius: 20px;
+  --pod-card-border-radius: var(--corner-5, 20px);
   --pod-card-mobile-border: var(--pod-card-border, none);
   --pod-card-border: none;
   --pod-card-spacing: var(--pod-md-gap-pad-margin);
@@ -366,7 +367,7 @@
     rgba(255, 255, 255, 0.37) 0%,
     rgba(255, 255, 255, 0.43) 72%
   );
-  --pod-drawer-border-radius: 20px;
+  --pod-drawer-border-radius: var(--corner-5, 20px);
   --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
   --dialog-corner: var(--corner-4);
 
