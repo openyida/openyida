@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 const { setTimeout: delay } = require('timers/promises');
+const { parseLastJson } = require('../scripts/e2e-real/runner');
 
 const BIN = process.env.OPENYIDA_TEST_BIN || path.resolve(__dirname, '../bin/yida.js');
 const APP = 'APP_TEST';
@@ -184,7 +185,8 @@ test('seed preserves bounded refresh diagnostics and sends no writes when refres
   await withSandbox(readFormList, async sandbox => {
     const result = await invoke(sandbox, seedArgs(sandbox.workspace));
     expect(result.code).toBe(1);
-    const payload = JSON.parse(result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
+    // A parallel preflight can still log an HTTP status after the JSON error.
+    const payload = parseLastJson(result.stderr);
     expect(payload.details.refreshFailure).toMatchObject({
       requestPath: expect.stringMatching(/\/(getFormNavigationListByOrder|getBindingByFormUuid)\.json$/),
       httpStatus: 401, refreshHttpStatus: 503, refreshErrorCode: 'service_unavailable',
@@ -198,7 +200,7 @@ test('seed preserves refresh-only failure details without a business request', a
   await withSandbox(readFormList, async sandbox => {
     const result = await invoke(sandbox, seedArgs(sandbox.workspace), { refreshOnly: true });
     expect(result.code).toBe(1);
-    const payload = JSON.parse(result.stderr.slice(result.stderr.indexOf('{\n  "success"')));
+    const payload = parseLastJson(result.stderr);
     expect(payload.details.refreshFailure).toEqual({
       refreshPath: '/openapi/cli/v1/auth/refresh',
       refreshHttpStatus: 503,
