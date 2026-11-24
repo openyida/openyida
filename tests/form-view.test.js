@@ -204,11 +204,47 @@ test('stale expected hash and concurrent changes both stop before mutation', asy
   expect(client.postFormOnce).not.toHaveBeenCalled();
 });
 
+test('recovers a stale save readback with one write', async () => {
+  const previous = JSON.parse(JSON.stringify(config));
+  const write = client.postFormOnce.getMockImplementation();
+  client.postFormOnce.mockImplementationOnce(async (...args) => {
+    const response = await write(...args);
+    client.postForm.mockResolvedValueOnce({ success: true, content: previous });
+    return response;
+  });
+
+  const result = await execute(save({ defaultConfig: { widths: { name: 250 } } }), client);
+  expect(result.readbackVerified).toBe(true);
+  expect(result.config.defaultConfig.widths.name).toBe(250);
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
+test('reports a concurrent edit immediately without repeating the save', async () => {
+  const write = client.postFormOnce.getMockImplementation();
+  client.postFormOnce.mockImplementationOnce(async (...args) => {
+    const response = await write(...args);
+    client.postForm.mockClear();
+    config.defaultConfig.unknownPlatformSetting = false;
+    return response;
+  });
+
+  await expect(execute(save({ defaultConfig: { widths: { name: 250 } } }), client)).rejects.toMatchObject({
+    code: 'FORM_VIEW_READBACK_MISMATCH', details: { mutationAccepted: true, retrySafe: false },
+  });
+  expect(client.postForm).toHaveBeenCalledTimes(1);
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
+});
+
 test('readback mismatch is a failure even after a successful write acknowledgement', async () => {
-  client.postFormOnce.mockResolvedValue({ success: true });
+  client.postFormOnce.mockImplementationOnce(async () => {
+    client.postForm.mockClear();
+    return { success: true };
+  });
   await expect(execute(save({ defaultConfig: { widths: { name: 250 } } }), client)).rejects.toMatchObject({
     code: 'FORM_VIEW_READBACK_MISMATCH', details: { mutationAccepted: true, retrySafe: false, backupPath },
   });
+  expect(client.postForm).toHaveBeenCalledTimes(4);
+  expect(client.postFormOnce).toHaveBeenCalledTimes(1);
 });
 
 test('accepts only the server-generated latestUpdateTime difference on readback', async () => {
