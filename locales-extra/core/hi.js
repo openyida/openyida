@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  code_workspace: { description: 'बहु-फ़ाइल कोड कार्यक्षेत्र पढ़ें और एक साथ सहेजें, बिल्ड पंजीकृत करें और ऐप संस्करण प्रकाशित करें।' },
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,

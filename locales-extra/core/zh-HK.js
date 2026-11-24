@@ -6,6 +6,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  code_workspace: { description: '讀取和批次儲存多檔案程式碼工作區，登記固定建置並發佈應用程式版本' },
   connector_runtime: require('../../lib/core/locales/zh').connector_runtime,
   connector_account: require('../../lib/core/locales/zh').connector_account,
   data_upgrade: {

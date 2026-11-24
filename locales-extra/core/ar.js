@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  code_workspace: { description: 'قراءة مساحات عمل الشيفرة متعددة الملفات وحفظها دفعة واحدة وتسجيل البنيات ونشر إصدارات التطبيق.' },
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,

@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  code_workspace: { description: '複数ファイルのコードワークスペースを読み取り、一括保存し、ビルドを登録してアプリのバージョンを公開します。' },
   connector_runtime: require('../../lib/core/locales/en').connector_runtime,
   connector_account: require('../../lib/core/locales/en').connector_account,
   data_upgrade: require('../../lib/core/locales/en').data_upgrade,

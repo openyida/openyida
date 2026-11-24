@@ -17,6 +17,30 @@ describe('CodeBundle HTTP transport', () => {
     jest.clearAllMocks();
   });
 
+  test('preserves repeated workspace multipart fields and file order', async () => {
+    global.fetch = jest.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, content: {} }), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    }));
+    await httpPostMultipart('https://yida.example.test', '/APP/query/codeWorkspace/savePatch.json',
+      { path: ['a.ts', 'b.ts'], deletedPath: ['old.ts'] }, {
+        files: [{ content: 'a', fileName: 'a.ts' }, { content: 'b', fileName: 'b.ts' }],
+      });
+    const body = global.fetch.mock.calls[0][1].body;
+    expect(body.getAll('path')).toEqual(['a.ts', 'b.ts']);
+    expect(body.getAll('deletedPath')).toEqual(['old.ts']);
+    expect(await Promise.all(body.getAll('files').map(file => file.text()))).toEqual(['a', 'b']);
+  });
+
+  test('downloads workspace binary sources as exact bounded bytes', async () => {
+    const bytes = Buffer.from([0, 255, 42]);
+    global.fetch = jest.fn().mockResolvedValue(new Response(bytes, {
+      status: 200, headers: { 'content-type': 'application/octet-stream' },
+    }));
+    const result = await httpGetCodeBundleText('https://yida.example.test', '/APP/query/codeWorkspace/downloadSource.json',
+      { targetSnapshotId: 'S1', path: 'a.png' }, { rawBytes: true, maxBytes: 3, expectedContentTypes: ['application/octet-stream'] });
+    expect(result).toEqual(bytes);
+  });
+
   test('posts fields and source/runtime as multipart form data', async () => {
     global.fetch = jest.fn().mockResolvedValue(new Response(JSON.stringify({
       success: true,
