@@ -363,7 +363,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore> <appType> [directory] [--expected-revision N] [--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--json]` | 读取和批量保存多文件代码工作区，登记固定构建并发布应用版本 |
+| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore\|bind\|start-test> <appType> [directory] [--expected-revision N] [--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--json]` | 读取和批量保存多文件代码工作区，登记固定构建并发布应用版本 |
 | `openyida app-settings <appType> [--section theme\|basic\|data-card\|cool-card] [--json]` | 获取主题、业务前后台、原生数据卡片和酷卡片管理入口 |
 | `openyida cool-card <list\|templates\|create\|get> <appType> [cardPageCode] [--type im\|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]` | 创建和读取宜搭原生酷卡片（交互卡片与置顶卡片） |
 | `openyida data-card <list\|create\|get\|save\|publish\|probe\|release-get\|release-save\|release-check\|release-test\|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>\|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published\|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]` | 创建、配置、发布原生数据卡片并管理投放播报 |

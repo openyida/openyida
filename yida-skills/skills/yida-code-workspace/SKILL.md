@@ -32,6 +32,15 @@ openyida code-workspace push APP_ID ./new-workspace --json
 
 ## 登记与正式发布
 
+自定义页面仍是实际访问入口；代码工作区不是页面。每个页面的 `YidaCodeCanvas.props.codeBundle` 引用一个构建入口：`{"version":"2","workspaceId":"...","entryId":"home"}`。entryId 必须在 project.json 和登记后的构建清单中存在，实际 JS/CSS 由批准的运行清单解析，不在 Schema 内复制源码或构建代码。
+
+```bash
+openyida code-workspace start-test APP_ID --json
+openyida code-workspace bind APP_ID ./new-workspace --form-uuid FORM_ID --entry home --canvas-node-id NODE_ID --json
+```
+
+start-test 复用已有活跃测试版本，缺失时创建，并仅把当前登录用户加入测试参与者，回读测试状态，不新增其他参与者。仅对刚创建的空自定义页面，可用 `--create-canvas` 代替节点选择。bind 保留原 Schema、数据源及并发版本，删除所选 Canvas 的 code/runtimeCode，保存后回读绑定；不登记构建、不发布应用。bind 先确认服务端 inTestEnvironment，或使用 getPreviewUrl 下发的有效测试上下文；均不可用时停止写入并报告 `CODE_WORKSPACE_TEST_CONTEXT_UNAVAILABLE`，不降级改写线上页面。测试上下文只保留在命令进程内，不保存 Cookie 登录态。
+
 ```bash
 openyida code-workspace register APP_ID ./new-workspace --build-dir ./frozen-output --json
 openyida code-workspace publish APP_ID ./new-workspace --draft-version ACTUAL_DRAFT --publish-id STABLE_PUBLISH_ID --json

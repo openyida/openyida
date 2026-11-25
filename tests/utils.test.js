@@ -174,6 +174,27 @@ describe('isLoginExpired', () => {
 // ── HTTP redirect login detection ────────────────────────────────────
 
 describe('http redirect login detection', () => {
+  test('application preview context is captured in memory and sent separately from bearer identity', async () => {
+    const headers = [];
+    const server = http.createServer((req, res) => {
+      headers.push(req.headers);
+      res.setHeader('Set-Cookie', ['unrelated=do-not-use; HttpOnly', '__previewVersion=server-context; HttpOnly']);
+      res.end(JSON.stringify({ success: true }));
+    });
+    const port = await listen(server);
+    let previewVersion;
+    try {
+      await httpGet(`http://127.0.0.1:${port}`, '/context', {}, {
+        silentStatus: true, onPreviewVersion: value => { previewVersion = value; },
+      });
+      expect(previewVersion).toBe('server-context');
+      await httpPost(`http://127.0.0.1:${port}`, '/save', '', { silentStatus: true, previewVersion });
+      expect(headers[1]['x-yida-preview-version']).toBe('server-context');
+      expect(headers[1].authorization).toBe('Bearer test-access-token');
+      expect(headers[1].cookie).toBeUndefined();
+      expect(headers[0]['x-yida-preview-version']).toBeUndefined();
+    } finally { await closeServer(server); }
+  });
   function listen(server) {
     return new Promise((resolve) => {
       server.listen(0, '127.0.0.1', () => resolve(server.address().port));

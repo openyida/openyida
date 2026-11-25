@@ -21,6 +21,35 @@ function project() {
 }
 const identity = { workspaceId: 'W1', sourceSnapshotId: '1234567890abcdef', revision: 2,
   sourceManifestSha256: 'a'.repeat(64), buildRecipeSha256: 'b'.repeat(64) };
+test('start-test reuses the active test version and adds only the authenticated current user', async () => {
+  const api = { currentUserId: 'current-user', version: jest.fn(async action => {
+    if (action === 'hasActiveTestVersion') { return true; }
+    if (action === 'getTestEnvironmentStatus') { return { inTestEnvironment: true }; }
+    return ['current-user'];
+  }) };
+  expect(await execute({ action: 'start-test', appType: 'APP_A' }, api)).toMatchObject({ inTestEnvironment: true, published: false });
+  expect(api.version.mock.calls.map(call => call[0])).toEqual(['hasActiveTestVersion', 'addTestParticipants', 'getTestEnvironmentStatus']);
+  expect(api.version).toHaveBeenCalledWith('addTestParticipants', { userIds: 'current-user' });
+  await expect(execute({ action: 'start-test', appType: 'APP_A' }, { version: jest.fn() })).rejects.toThrow('identity');
+});
+test('bind selects a declared entry, keeps schema revision and verifies remote binding', async () => {
+  project();
+  writeState(root, { ...identity, appType: 'APP_A', files: describe(collectFiles(root)) });
+  let schema = { gmtModified: 123, pages: [{ componentsTree: [
+    { componentName: 'YidaCodeCanvas', id: 'canvas', props: { code: 'old' } },
+  ] }] };
+  const api = { get: jest.fn().mockResolvedValue(identity), enterTest: jest.fn(),
+    readPage: jest.fn(async () => ({ schema, revision: 123 })),
+    savePage: jest.fn(async (id, next, revision) => { expect(revision).toBe(123); schema = next; }) };
+  const result = await execute({ action: 'bind', appType: 'APP_A', directory: root, 'form-uuid': 'FORM-A', entry: 'app' }, api);
+  expect(result).toMatchObject({ canvasNodeId: 'canvas', pageBindingReadbackVerified: true, published: false });
+  expect(api.savePage).toHaveBeenCalledTimes(1);
+  api.enterTest.mockRejectedValue(new Error('missing test context'));
+  await expect(execute({ action: 'bind', appType: 'APP_A', directory: root, 'form-uuid': 'FORM-A', entry: 'app' }, api)).rejects.toThrow('missing test context');
+  expect(api.savePage).toHaveBeenCalledTimes(1);
+  fs.writeFileSync(path.join(root, 'App.tsx'), 'unsaved');
+  await expect(execute({ action: 'bind', appType: 'APP_A', directory: root, 'form-uuid': 'FORM-A', entry: 'app' }, api)).rejects.toThrow('Push local changes');
+});
 test('local check routes through the real command without initializing auth or making writes', async () => {
   project();
   jest.spyOn(console, 'log').mockImplementation(() => {});
