@@ -105,7 +105,8 @@ const path = require('path');
 // Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
 // Merged display + DataV package, Node 20.20.2 / npm 10.9.9: 2901748 bytes; round to the next 16 KiB boundary.
 // main integration on Node 22 measured 2944337 compressed bytes; next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2880 * 1024;
+// Theme integration on Node 22.22.3: 2,974,942 packed bytes; next 16 KiB boundary.
+const MAX_TARBALL_BYTES = 2912 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -273,7 +274,8 @@ const MAX_TARBALL_BYTES = 2880 * 1024;
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
 // Integrated package measured 10598408 unpacked bytes; next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 10352 * 1024;
+// Theme integration: 10,605,058 unpacked bytes, still 837 entries.
+const MAX_UNPACKED_BYTES = 10368 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.

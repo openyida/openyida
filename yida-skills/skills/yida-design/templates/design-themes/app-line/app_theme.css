@@ -160,6 +160,7 @@
   --pod-card-mobile-spacing: 10px;
   --pod-form-mobile-row-gap: 16px;
   --pod-card-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-card-mobile-border: var(--pod-card-border, none);
   --pod-card-border: none;
   --pod-card-spacing: var(--pod-md-gap-pad-margin);
 
@@ -330,6 +331,9 @@
   --pod-formView-stickyFooter-height: 56px;
   --pod-formView-stickyFooter-bottom: 8px;
   --pod-page-footer-bg-color: #ffffff;
+  --pod-page-footer-mobile-border: none;
+  --pod-page-footer-bg-opacity: 90%;
+  --pod-page-footer-backdrop-filter: blur(16px);
   --pod-page-footer-border-radius: 0px;
 
   /* 数据管理与表格 */
@@ -354,7 +358,7 @@
     rgba(255, 255, 255, 0.37) 0%,
     rgba(255, 255, 255, 0.43) 72%
   );
-  --pod-drawer-border-radius: var(--pod-xl-border-radius, 20px);
+  --pod-drawer-border-radius: 20px;
   --pod-drawer-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.1);
   --dialog-corner: var(--corner-4);
 
@@ -811,9 +815,3 @@ body.pod-premium .flow-steps .next-step-dot
   .pod-premium .oyd-style-intro h1 { font-size: min(32px, var(--oyd-heading-size)); }
 }
 /* OPENYIDA APPLICATION STYLE RECIPES END */
-
-/* openyida-mobile-card-surface:start */
-:root {
-  --pod-card-mobile-border: none;
-}
-/* openyida-mobile-card-surface:end */

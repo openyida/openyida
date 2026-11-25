@@ -14,6 +14,23 @@ const { resolveThemeColors } = require('../lib/design-plan/themes');
 const { topLevelRules } = require('../lib/app/theme-scope');
 const rules = '\n.template-floating-rail { border-radius: 16px; box-shadow: 0 2px 8px #0003; }\n.template-divider::before { display: none; }\n';
 const projectRule = '\n.project-help { padding: 17px; }\n';
+
+test('missing radius defaults follow the shared scale and retain authored overrides', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const { rootDeclarations } = require('../lib/core/theme-brand-scale');
+  const css = applyReportThemeTokens(':root { --corner-1: 6px; --corner-3: 9px; --pod-card-border-radius: 0px; }');
+  const tokens = rootDeclarations(css);
+  expect(tokens['--corner-1']).toBe('6px');
+  expect(tokens['--corner-3']).toBe('9px');
+  for (const step of [2, 4, 5, 6]) {
+    expect(tokens[`--corner-${step}`]).toBe(`calc(var(--corner-1) * ${step})`);
+  }
+  expect(tokens['--pod-card-border-radius']).toBe('0px');
+  expect(tokens['--pod-page-border-radius']).toBe('var(--corner-5, 20px)');
+  expect(tokens['--pod-drawer-border-radius']).toBe('var(--corner-5, 20px)');
+  expect(tokens['--pod-card-mobile-border-radius']).toBe('var(--corner-4, 16px)');
+  expect(applyReportThemeTokens(css)).toBe(css);
+});
 let directory;
 
 function planFor(themeId = 'soft-outline-rhythm') {
@@ -156,7 +173,8 @@ test.each(loadThemeIndex().themes.filter(theme => theme.mode === 'template'))('$
   const instantiated = paired.replace(/^([ \t]*)(--[\w-]+)(\s*:\s*)([^;\n]+);/gm,
     (line, indent, name, separator, value) => /\{\{|<生成实际色值：/.test(value)
       ? `${indent}${name}${separator}${tokens[name]};` : line);
-  expect(css.startsWith(`/* openyida-theme-source: ${theme.themeId} */\n${instantiated.trimEnd()}`)).toBe(true);
+  const bridged = require('../lib/app/mobile-brand-tokens').bridgePrimaryBrand(instantiated);
+  expect(css.startsWith(`/* openyida-theme-source: ${theme.themeId} */\n${bridged.trimEnd()}`)).toBe(true);
   expect(css).toContain('--pod-chart-axis-line-color:');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-th-bg: var\(--color-fill1-2, #f6f7f9\);/);
   const rules = topLevelRules(css);
@@ -214,11 +232,11 @@ test('report and portal theme defaults preserve authored values and stay idempot
   expect(css.match(/--pod-page-bg-image:/g)).toHaveLength(1);
   expect(css.match(/--pod-page-bg-color:/g)).toHaveLength(1);
   expect(css).toContain('--pod-card-mobile-padding: 16px;');
-  expect(css).toContain('--pod-card-mobile-border-radius: 16px;');
+  expect(css).toContain('--pod-card-mobile-border-radius: var(--corner-4, 16px);');
   expect(css).toContain('--pod-page-mobile-margin: 16px;');
   expect(css).toContain('--pod-card-mobile-spacing: 10px;');
   expect(css).toContain('--pod-form-mobile-row-gap: 16px;');
-  expect(css).toContain('--pod-card-border-radius: 20px;');
+  expect(css).toContain('--pod-card-border-radius: var(--corner-5, 20px);');
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--pod-table-border-radius: 6px;/);
   expect(css).toMatch(/\.report-theme-card\s*\{[^}]*--table-row-hover-bg:/);
   expect(applyReportThemeTokens(css)).toBe(css);
@@ -268,4 +286,28 @@ test('generated themes fill mobile aliases and keep authored categorical palette
   expect(css.match(/--color-group:/g)).toHaveLength(1);
   expect(css).toContain('--color-group: #147d73, #ffbc20;');
   expect(applyReportThemeTokens(css)).toBe(css);
+});
+
+test('generated primary bridge repairs stale mobile colors and preserves local palettes', () => {
+  const { applyReportThemeTokens } = require('../lib/app/report-theme-tokens');
+  const input = ':root { --color-brand1-6: #897253; --color-brand-3: #2563EB; }\n'
+    + '.component { --color-brand-3: #FF0000; }';
+  const css = applyReportThemeTokens(input);
+  expect(css).toContain('--color-brand1-6: #897253; --color-brand-3: var(--color-brand1-6);');
+  expect(css).toContain('.component { --color-brand-3: #FF0000; }');
+  expect(applyReportThemeTokens(css)).toBe(css);
+  const updated = applyReportThemeTokens(css.replace('#897253', '#245B57'));
+  expect(updated).toContain('--color-brand1-6: #245B57; --color-brand-3: var(--color-brand1-6);');
+});
+
+test('changing a paired template primary keeps mobile colors linked across regeneration', () => {
+  const theme = loadThemeIndex().themes.find(item => item.themeId === 'app-platinum');
+  const original = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
+  const design = original.replace('"--color-brand1-6": "#897253"', '"--color-brand1-6": "#2563EB"');
+  const css = generateThemeCss(design);
+  const { rootDeclarations } = require('../lib/core/theme-brand-scale');
+  const tokens = rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+  expect(tokens['--color-brand1-6']).toBe('#2563EB');
+  expect(tokens['--color-brand-3']).toBe('var(--color-brand1-6)');
+  expect(generateThemeCss(design, css, design)).toBe(css);
 });
