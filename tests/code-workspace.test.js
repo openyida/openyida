@@ -87,6 +87,37 @@ test('conflicting revision blocks upload and preserves local edits', async () =>
   expect(api.multipart).not.toHaveBeenCalled();
   expect(fs.readFileSync(path.join(root, 'App.tsx'), 'utf8')).toContain('export');
 });
+test('lost upload response reconciles an exact committed snapshot without retrying the write', async () => {
+  project();
+  const files = describe(collectFiles(root));
+  const saved = { ...identity, revision: 1, files };
+  let currentReads = 0;
+  const api = { get: jest.fn(async action => {
+    if (action === 'limits') { return { maxSourceFileCount: 100, maxSourceSnapshotBytes: 1048576 }; }
+    if (action === 'current') { return currentReads++ === 0 ? null : saved; }
+    return saved;
+  }), multipart: jest.fn().mockRejectedValue(new Error('request timed out')) };
+  const result = await execute({ action: 'push', appType: 'APP_A', directory: root, 'expected-revision': '0' }, api);
+  expect(result).toMatchObject({ responseRecovered: true, sourceReadbackVerified: true, revision: 1 });
+  expect(api.multipart).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fs.readFileSync(path.join(root, '.openyida/workspace.json'))).sourceSnapshotId).toBe(saved.sourceSnapshotId);
+});
+test.each(['different files', 'later revision', 'readback unavailable'])('uncertain upload preserves error for %s and never retries', async reason => {
+  project();
+  const saved = { ...identity, revision: reason === 'later revision' ? 2 : 1,
+    files: reason === 'different files' ? {} : describe(collectFiles(root)) };
+  let currentReads = 0;
+  const error = new Error('request timed out');
+  const api = { get: jest.fn(async action => {
+    if (action === 'limits') { return { maxSourceFileCount: 100, maxSourceSnapshotBytes: 1048576 }; }
+    if (currentReads++ === 0) { return null; }
+    if (reason === 'readback unavailable') { throw new Error('offline'); }
+    return saved;
+  }), multipart: jest.fn().mockRejectedValue(error) };
+  await expect(execute({ action: 'push', appType: 'APP_A', directory: root, 'expected-revision': '0' }, api)).rejects.toBe(error);
+  expect(api.multipart).toHaveBeenCalledTimes(1);
+  expect(fs.existsSync(path.join(root, '.openyida/workspace.json'))).toBe(false);
+});
 test('pull preserves binary bytes, refuses overwrite and verifies all bytes before creating output', async () => {
   const target = path.join(root, 'pull');
   const bytes = Buffer.from([0, 255, 19]);

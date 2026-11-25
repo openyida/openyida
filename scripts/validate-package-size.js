@@ -279,7 +279,9 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Multi-file workspace adds three runtime modules and one skill. Baseline:
 // 10,461,568 unpacked bytes / 825 files; feature: about 10,488,000 bytes / 829 files.
 // Advance only unpacked and entry ratchets; compressed and single-file caps stay fixed.
-const MAX_UNPACKED_BYTES = 10256 * 1024;
+// Two workspace navigation/layout samples plus upload reconciliation: measured
+// 10,502,808 bytes / 832 files on Node 26; retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10272 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -332,7 +334,7 @@ const MAX_UNPACKED_BYTES = 10256 * 1024;
 // The report-to-native-datav orchestration skill adds one packaged entry.
 // Workspace V2 page binding adds one schema transformation module. CI measured
 // 830 shipped files; keep compressed, unpacked and per-file byte budgets unchanged.
-const MAX_ENTRY_COUNT = 830;
+const MAX_ENTRY_COUNT = 832;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
