@@ -354,7 +354,7 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认设计组合指标、分组对比、占比图和表格，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮；`view` 只用于无源码的旧卡片。
 
-组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`、`details`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config)、useQuery(config, drillDimensions) 和 queryDetails(source, filters, page, limit)，用于独立查询与自定义明细 UI；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
+组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config) 和 useQuery(config, drillDimensions)，用于独立聚合查询；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
 
 默认用 `analysis.columns` 的 `key`、`numeric`、`title` 从 `rows` 构造图表；分组或指标变化时重算系列，图例、单位和提示同步更新。雷达等多指标图也不固定字段名。需要脱离本卡数据配置查询时，按 [独立查询 API](../yida-dashboard/references/independent-query-api.md) 核对宿主与服务端 V2 能力。
 

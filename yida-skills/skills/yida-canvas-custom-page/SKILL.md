@@ -246,4 +246,4 @@ openyida get-schema <appType> <formUuid> --field-map-json
 
 普通自定义页面也可直接拖入“可编程数据卡片”，不需要 AI 画布。在源码编辑器使用 `openyida sample openyida-page-template analysis-card-content --output pages/src/card-content.jsx` 生成的内容源码。此入口要求设计器支持 YidaAnalysisCard 的组件列表、编辑、应用及保存。画布内通过 `window.__VcDeepYidaUtils__.YidaAnalysisCard` 使用同一组件；平台同时导出 `analysisApi`。
 
-源码通过 `analysis.api.query(config)` 查询，`analysis.api.useQuery(config, drillDimensions)` 管理独立加载、错误、下钻及刷新状态，`analysis.api.queryDetails(source, filters, page, limit)` 读取权限过滤后的分页明细。每个图表可在函数组件顶层调用一次 useQuery；不要在条件或循环中调用。筛选通过 state 更新 config，排序及聚合交给服务器，明细 filters 显式包含当前查询与所选行条件。用真实字段与数据源 ID，不在源码写登录凭据或伪造应用身份。设计时保留主题 token、窄屏堆叠、数值格式、原始行回调和完整状态；占比与最高值标明“当前结果”，不要把 Top N 结果当作全量。
+源码通过 `analysis.api.query(config)` 查询聚合结果，`analysis.api.useQuery(config, drillDimensions)` 管理独立加载、错误、下钻及刷新状态。每个图表可在函数组件顶层调用一次 useQuery；不要在条件或循环中调用。筛选通过 state 更新 config，排序及聚合交给服务器。用真实字段与数据源 ID，不在源码写登录凭据或伪造应用身份。设计时保留主题 token、窄屏堆叠、数值格式、原始行回调和完整状态；占比与最高值标明“当前结果”，不要把 Top N 结果当作全量。
