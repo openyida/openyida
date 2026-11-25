@@ -330,7 +330,9 @@ const MAX_UNPACKED_BYTES = 10256 * 1024;
 // Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
 // Byte and per-file budgets remain unchanged; account only for these two shipped files.
 // The report-to-native-datav orchestration skill adds one packaged entry.
-const MAX_ENTRY_COUNT = 829;
+// Workspace V2 page binding adds one schema transformation module. CI measured
+// 830 shipped files; keep compressed, unpacked and per-file byte budgets unchanged.
+const MAX_ENTRY_COUNT = 830;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
