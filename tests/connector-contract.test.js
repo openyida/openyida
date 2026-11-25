@@ -93,6 +93,26 @@ describe('connector shared contract', () => {
     expect(canonicalizeConnectorTestResponse({ success: true, content: canonical })).toEqual(canonical);
   });
 
+  test.each([
+    [404, {}],
+    ['404', { statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: '{"ok":true}' }],
+  ])('reports platform error %p before interpreting the test result %j', (errorCode, content) => {
+    expect(() => canonicalizeConnectorTestResponse({
+      success: true, errorCode, errorMsg: 'No handler found, token=private-value', content,
+    })).toThrow(expect.objectContaining({
+      code: 'CONNECTOR_TEST_ENVELOPE_FAILED',
+      message: 'No handler found, token=***',
+      details: expect.objectContaining({
+        platformErrorCode: '404', retrySafe: false, sideEffectState: 'unknown',
+      }),
+    }));
+  });
+
+  test.each([null, '', 0, '0'])('accepts a successful envelope with empty or zero errorCode %p', errorCode => {
+    const result = { statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: { errorCode: 404 } };
+    expect(canonicalizeConnectorTestResponse({ success: true, errorCode, content: result })).toEqual(result);
+  });
+
   test('fails closed for unknown envelopes and non-2xx status lines', () => {
     try {
       canonicalizeConnectorTestResponse({

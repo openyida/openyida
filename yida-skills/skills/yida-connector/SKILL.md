@@ -15,6 +15,7 @@ description: 宜搭 HTTP 连接器创建与管理。打通钉钉/自建系统/�
 ## 严格要求 (MUST DO)
 
 - 优先使用 `smart-create` 从 curl 命令生成脱敏动作草稿；它不创建或更新远端连接器，后续创建/追加仍需显式执行对应命令
+- 创建前检查显示名称 `displayName`：最多 **24 个 Unicode 码点**，JavaScript 可用 `Array.from(displayName).length <= 24` 校验。一个汉字、一个英文字母或一个 `😀` 各计 1，组合 emoji 按组成它的码点数计。自动起名时用系统简称或业务用途，例如 `订单查询`，把项目全称、测试日期和版本号放进 `--desc`。用户指定的名称超限时，先给出短名供确认。
 - 创建连接器后，将 connector-id 记录到 `.cache/<项目名>-schema.json`
 - 同时记录 `connectorName`。数字 `connectorId` 只用于 CLI 管理；自定义页面调用网关必须使用以 `Http_` 开头的 `connectorName`
 - `--operations`、`--action` 等文件参数必须先用结构化文件写入工具创建到 `<projectRoot>/.cache/openyida/<项目名或任务名>/connector/` 或该技能更具体的目录，再传给命令；不要写仓库根目录或系统临时目录
@@ -41,6 +42,7 @@ CLI 不执行连接器删除。用户确需删除时，先确认并解除表单�
 | 异常场景 | 处理方式 |
 |---------|----------|
 | 连接器不存在（connector-id 无效） | 重新执行 `openyida connector list` 获取有效 ID，不得编造 |
+| 创建时返回平台码 `500`「数据库操作超时」 | 先用 `openyida connector list --keyword "<原显示名称>"` 回读并核对准确名称。若名称超过 24 个码点，且已确认未创建，按上方命名规则缩短后再创建。服务端日志中的 `Data too long for column 'display_name'` 可确认是名称超限。写入结果未知时不重发。 |
 | 鉴权失败（401/403） | 检查鉴权方式和凭证配置，重新创建连接器或更新鉴权账号 |
 | API 调用超时 | 只读请求可在检查网络后重试；写请求先核对远端结果，结果未知时不重发 |
 | action-id 不存在 | 执行 `openyida connector list-actions <connector-id>` 重新获取有效 action-id |
@@ -158,8 +160,8 @@ openyida connector gen-template
 ## 创建示例
 
 ```bash
-# 无鉴权
-openyida connector create "测试API" "api.example.com"
+# 无鉴权，显示名称用业务短名，完整用途放在描述中
+openyida connector create "订单查询" "api.example.com" --desc "供应链项目的订单状态查询" --operations ./operations.json --json
 
 # 基本身份验证（创建后使用返回的 accountManageUrl 配置账号）
 openyida connector create "内部系统" "internal.company.com" --auth "基本身份验证" --operations <action-file> --json
