@@ -36,7 +36,7 @@ openyida sample yida-app fast-theme --style-id <本轮选定themeId> --primary-c
 
 命名主题如需覆盖主题变量，可用 `--tokens-file` 传入含 `tokens` 对象的主题 JSON。有明确自由创意需求时使用 `free-creative`，在同一输入中提供 `creativeDirection`，并传 `--nav-theme light|dark`。app-pop 沿用明确风格/展示任务依据，不因 Fast 自动选择。主题 token 与 CSS 消费、旧主题全局作用域确认等规则仍适用。主题失败只暂缓主题应用，主流程继续已授权且独立的资源/页面工作。
 
-appType 和 CSS 各自就绪后，按 `yida-create-app` 的 update-app 参数上传主题并设置布局/导航，回读核对。将 applicationTheme 存入逐步积累的 build-manifest。页面直接编写 Canvas 源码并消费共享变量，不补造设计文件或 page-spec。
+appType 和 CSS 各自就绪后，按 `yida-create-app` 的 `update-app` 示例上传主题并设置布局/导航。调用时省略 `--json`，直接从默认回执核对主题和导航。将 applicationTheme 存入逐步积累的 build-manifest。页面直接编写 Canvas 源码并消费共享变量，不补造设计文件或 page-spec。
 
 范围内包含数字大屏时，先消费本轮应用实际落地的主题，默认与应用品牌色和明暗搭配。普通大屏用自定义页面消费主题变量；用户明确选择原生 DataV 时加载 `yida-datav`，创建、复制或编辑前读取主题快照，再按组件版本调整画布、图表、地图、控件与浮层。浅色应用不照搬深色模板；保存值回读与应用工作台中的视觉检查分别留证，不以应用主题上传成功代替大屏适配完成。
 
