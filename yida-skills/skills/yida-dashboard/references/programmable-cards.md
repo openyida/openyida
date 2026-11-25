@@ -131,7 +131,9 @@ const filters = business ? [{ field: businessField, op: 'eq', values: [business]
 
 数据由每卡 Host/query 或原生 analysis 独立传入；库只负责绘图，权限和业务查询继续留在平台。有真实聚合数据即可使用高级图表，不要求为了换图形再建报表。数据不满足契约时说明缺失；实验室演示数据单独分区标记，不掺入业务合计。箱型图需要服务端五数摘要或明确授权的完整样本，禁止用分页片段/几个汇总值猜分位数。
 
-在可编程卡片和 CodeCanvas 中使用 `import * as echarts from 'echarts'`。词云另加 `import 'echarts-wordcloud'`。完整高级组件示例包含词云配方和这条导入。组件运行时根据导入加载 ECharts 5.6.0 和词云扩展，同一页面的卡片共享资源，资源加载错误由运行时展示。
+AI 可编程卡片宿主默认加载 ECharts 5.6.0，同一窗口共享资源。卡片源码使用 `import * as echarts from 'echarts'`，CLI 默认 `analysis-card-config` 模板也使用 ECharts。无源码的卡片显示“暂无数据分析编码”，不自动生成表格、柱图或指标卡。Recharts 和 antd 按源码导入加载，已有显式 Recharts 示例可继续使用。
+
+普通 CodeCanvas 仍按导入加载资源。词云另加 `import 'echarts-wordcloud'`；完整高级组件示例包含该扩展。资源加载错误由宿主展示，源码负责查询的加载、错误、空数据和图表展示。
 
 组件支持 ResizeObserver、卸载 dispose、点击回传原始行、dataZoom 回调、loading/error/empty 和动作插槽。点击回调由父级接入关联/下钻，图表库不会自动查询。option 用 useMemo 保持稳定；父级主题变更时提供实际颜色值，Canvas 图表不能直接消费 CSS var。正式交付逐图核对标题、单位、图例、原始数据及交互，不以“图形出现”代替数据验收。
 
