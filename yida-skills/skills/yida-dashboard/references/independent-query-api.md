@@ -14,7 +14,6 @@
 | 异步执行 | startQuery(v2Config) | 直接结果或 continuePolling/taskId/retryAfterMs |
 | 读取任务 | poll(taskId) | 当前企业、应用和用户的任务，最长 300 秒 |
 | 导出筛选结果 | export(config) | CSV 的 fileName/mimeType/content/rowCount/scope |
-| 分页明细 | queryDetails({formUuid, viewUuid?}, filters, page, limit) | 保留视图和行列权限，limit 最大 100 |
 
 `useQuery(config, drillDimensions)`、组件 `query` 属性、可视化数据设置和源码查询 API 共用 V2 配置。
 
@@ -66,7 +65,7 @@ const result = await analysis.api.queryResult(config);
 
 普通指标仍用 field/aggregation/as；公式指标使用 expression/as，两者互斥。V2 dimensions/metrics 必须显式传数组。公式仅引用同一真实 cube 的字段，采用 cubeCode.fieldCode，支持 capabilities 中列出的数值指标函数子集；最长 4096 字符、32 层括号。字符串仅支持无转义的单引号。网关检查范围，原生引擎负责解析、类型和计算，参数组合仍可能失败。
 
-日期字段可使用 YEAR/MONTH/DAY/HOUR/MINUTE/SECOND，与原生报表标准日期分组一致；以目标服务端 capabilities 为准。半年、季度、周、旬本期不支持，已有配置应显示服务端 INVALID_CARD_QUERY 错误，不自动降级或在前端合并分页结果。点击“2026-01”下钻时，按源字段和业务时区转换成 gte 月初、lt 下月月初两个条件，再切换分组或查询明细；不能把展示月份 eq 到原始日期字段。
+日期字段可使用 YEAR/MONTH/DAY/HOUR/MINUTE/SECOND，与原生报表标准日期分组一致；以目标服务端 capabilities 为准。半年、季度、周、旬本期不支持，已有配置应显示服务端 INVALID_CARD_QUERY 错误，不自动降级或在前端合并分页结果。点击“2026-01”下钻时，按源字段和业务时区转换成 gte 月初、lt 下月月初两个条件，再切换聚合分组；不能把展示月份 eq 到原始日期字段。
 
 缓存默认关闭。允许缓存时 enabledCache:true；主动刷新使用 false。缓存时效由服务端管理，不能自行承诺 TTL 或命中。跨源关联、任意 SQL、完整原生函数库、同比环比/累计统计模型未通过该紧凑协议开放。
 
