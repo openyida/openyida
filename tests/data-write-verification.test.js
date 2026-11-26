@@ -21,7 +21,8 @@ beforeEach(() => {
     { componentName: 'TextField', props: { fieldId: 'textField_name', label: '客户名称' } },
     { componentName: 'NumberField', props: { fieldId: 'numberField_total', label: '金额' } },
   ], componentAlias: { items: [{ fieldId: 'textField_name', alias: 'name' }] } }] } };
-  record = { formInstId: 'FINST-NEW', modelUuid: 'FORM-TEST', formData: { textField_name: 'A', numberField_total: '0' } };
+  record = { formInstId: 'FINST-NEW', modelUuid: 'FORM-TEST', gmtModified: 123,
+    formData: { textField_name: 'A', numberField_total: '0' } };
   utils.loadAuthData.mockReturnValue({ auth_mode: 'token', auth_source: 'token', corp_id: 'ding-test', user_id: 'test-user', base_url: 'https://www.aliwork.com' });
   utils.requestWithAutoLogin.mockImplementation((fn, auth) => fn(auth));
   utils.httpGet.mockImplementation(async (_base, url) => url.includes('getFormSchema.json') ? schema : { success: true, content: record });
@@ -126,6 +127,203 @@ test('updates retain native permission gates and verify only the submitted chang
   expect(permissions.assertFormUpdatePermissions).toHaveBeenCalledTimes(1);
   expect(utils.httpPost).toHaveBeenCalledTimes(1);
   expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ readbackVerified: true, formInstId: 'FINST-NEW' });
+});
+
+test.each([undefined, 'n'])('historical new fields require an explicit upgrade choice (%s) before writing', async choice => {
+  record.version = 1;
+  record.formData = { textField_name: 'A' };
+  record.instValue = JSON.stringify([{ fieldId: 'textField_name', componentName: 'TextField' }]);
+  const extra = choice ? ['--use-latest-version', choice] : [];
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"numberField_total":5}', ...flags, ...extra]))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_REQUIRED', details: { sideEffectState: 'none' } });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('an existing empty field is not inferred as new from missing formData alone', async () => {
+  record.formData = {};
+  record.instValue = JSON.stringify([{ fieldId: 'textField_name', componentName: 'TextField' }]);
+  utils.httpPost.mockImplementation(async () => { record.formData = { textField_name: 'A' }; return { success: true }; });
+  await update({ textField_name: 'A' });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+function historicalSubform(rows = [[
+  { componentName: 'TextField', fieldId: 'oldText', fieldData: {} },
+  { componentName: 'NumberField', fieldId: 'oldNumber', fieldData: { value: '3' } },
+]]) {
+  schema.content.pages[0].componentsTree.push({ componentName: 'TableField', props: { fieldId: 'lines' }, children: [
+    { componentName: 'TextField', props: { fieldId: 'oldText' } },
+    { componentName: 'NumberField', props: { fieldId: 'oldNumber' } },
+    { componentName: 'NumberField', props: { fieldId: 'newNumber' } },
+  ] });
+  record.version = 1;
+  record.formData = { lines: rows.length ? JSON.stringify([{ oldNumber: '3' }]) : '[]' };
+  record.instValue = JSON.stringify([{ componentName: 'TableField', fieldId: 'lines', fieldData: { value: rows } }]);
+  permissions.assertFormUpdatePermissions.mockResolvedValue({ schema: { version: 2 },
+    fields: new Map([['lines', { componentName: 'TableField' }]]) });
+}
+
+test.each([undefined, 'n'])('new historical subform leaves require upgrade choice (%s) before a write', async choice => {
+  historicalSubform();
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"lines":[{"oldNumber":3,"newNumber":5}]}', ...flags,
+    ...(choice ? ['--use-latest-version', choice] : [])]))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_REQUIRED', details: { fields: ['lines[0].newNumber'], sideEffectState: 'none' } });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('subform choice protection also runs without optional write verification', async () => {
+  historicalSubform();
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"lines":[{"newNumber":5}]}', ...flags.filter(flag => flag !== '--verify-write')]))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_REQUIRED' });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('an old empty subform leaf remains writable from its component inventory', async () => {
+  historicalSubform();
+  await run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"lines":[{"oldText":"filled","oldNumber":3}]}', ...flags.filter(flag => flag !== '--verify-write')]);
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+test.each([[], [null], [[]]].map(rows => [rows]))('unreadable or empty old subform inventory %j cannot authorize new leaves', async rows => {
+  historicalSubform(rows);
+  await expect(update({ lines: [{ newNumber: 5 }] }))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_UNVERIFIED', details: { sideEffectState: 'none' } });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('an empty subform at the confirmed current version can accept its existing schema fields', async () => {
+  historicalSubform([]);
+  record.version = 2;
+  await run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"lines":[{"oldNumber":3}]}', ...flags.filter(flag => flag !== '--verify-write')]);
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+test.each([1, 2])('omitted empty table inventory uses the native version (%s) without guessing it is new', async version => {
+  historicalSubform([]);
+  record.version = version;
+  record.formData = { textField_name: 'A' };
+  record.instValue = JSON.stringify([{ componentName: 'TextField', fieldId: 'textField_name' }]);
+  const result = run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"lines":[{"oldNumber":3}]}', ...flags.filter(flag => flag !== '--verify-write')]);
+  if (version === 1) {
+    await expect(result).rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_UNVERIFIED' });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  } else {
+    await result;
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  }
+});
+
+test('native field permission failures take precedence over a version upgrade suggestion', async () => {
+  record.formData = { textField_name: 'A' };
+  record.instValue = JSON.stringify([{ fieldId: 'textField_name' }]);
+  permissions.assertFormUpdatePermissions.mockRejectedValueOnce(new CliError('readonly', { code: 'READONLY' }));
+  await expect(update({ numberField_total: 5 })).rejects.toMatchObject({ code: 'READONLY' });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test.each(['Y', 'true', 'false', 'yes'])('invalid upgrade choices are rejected before writing: %s', choice => {
+  return expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', choice]))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_CHOICE_INVALID' });
+});
+
+function withPublishedVersion(version) {
+  const original = utils.httpGet.getMockImplementation();
+  utils.httpGet.mockImplementation((base, url, ...rest) => url.includes('getFormSchemaInfo.json')
+    ? { success: true, content: { version } } : original(base, url, ...rest));
+  permissions.assertFormUpdatePermissions.mockResolvedValue({ schema: { version }, fields: new Map([
+    ['textField_name', { componentName: 'TextField' }], ['numberField_total', { componentName: 'NumberField' }],
+  ]) });
+}
+
+test('upgrade always verifies fields and published version, even without --verify-write', async () => {
+  withPublishedVersion(2);
+  record.version = 1;
+  utils.httpPost.mockImplementation(async () => { record.version = 2; return { success: true }; });
+  await run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', '--expect-form-name', '验证表单', '--expect-form-type', 'receipt',
+    '--use-latest-version', 'y']);
+  expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({ readbackVerified: true,
+    verification: { expectedVersion: '2', instanceVersion: 2 } });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  expect(utils.httpPost.mock.calls[0][1]).toContain('/query/formdata/editFormDataByDataMap.json');
+  const params = new URLSearchParams(utils.httpPost.mock.calls[0][2]);
+  expect(params.get('version')).toBe('2');
+  expect(params.get('gmtModified')).toBe('123');
+  expect(params.get('formUuid')).toBe('FORM-TEST');
+  expect(JSON.parse(params.get('dataMap'))).toEqual({ textField_name: 'A' });
+  expect(params.has('useLatestVersion')).toBe(false);
+  expect(params.has('updateFormDataJson')).toBe(false);
+});
+
+test.each(['edit_version', 'timestamp', 'type'])('unverified upgrade context (%s) sends no write', async reason => {
+  withPublishedVersion(2);
+  if (reason === 'timestamp') { delete record.gmtModified; }
+  if (reason === 'edit_version') {
+    permissions.assertFormUpdatePermissions.mockResolvedValue({ schema: { version: 1 }, fields: new Map() });
+  }
+  if (reason === 'type') {
+    permissions.assertFormUpdatePermissions.mockResolvedValue({ schema: { version: 2 },
+      fields: new Map([['textField_name', { componentName: 'NumberField' }]]) });
+  }
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_VERSION_UNVERIFIED' });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('upgrade rejects null clears before the native converter can omit them', async () => {
+  withPublishedVersion(2);
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":null}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_NULL_UNSUPPORTED', details: { fields: ['textField_name'] } });
+  expect(utils.httpPost).not.toHaveBeenCalled();
+});
+
+test('native edit conflicts do not fall back to the legacy endpoint or replay', async () => {
+  withPublishedVersion(2);
+  utils.httpPost.mockResolvedValue({ success: false, errorCode: '500', errorMsg: '实例数据已修改，请刷新当前页面' });
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_API_ERROR', details: { errorCode: '500', retrySafe: false,
+      partial: { formInstId: 'FINST-NEW' }, target: { formInstId: 'FINST-NEW' } } });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+  expect(utils.httpPost.mock.calls[0][1]).toContain('/query/formdata/editFormDataByDataMap.json');
+});
+
+test('a lost native upgrade response preserves the existing ID and requires readback without replay', async () => {
+  withPublishedVersion(2);
+  utils.httpPost.mockRejectedValue(Object.assign(new Error('response lost'), { code: 'ECONNRESET' }));
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_WRITE_UNVERIFIED', details: {
+      causeCode: 'ECONNRESET', partial: { formInstId: 'FINST-NEW' }, retrySafe: false,
+      sideEffectState: 'unknown', readbackAllowed: true,
+    } });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+test('an accepted upgrade that retains the old instance version fails without replaying the write', async () => {
+  withPublishedVersion(2); record.version = 1;
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_WRITE_READBACK_MISMATCH', details: { mutationAccepted: true, retrySafe: false,
+      issues: [{ code: 'READBACK_VERSION_MISMATCH', expectedVersion: '2', actualVersion: 1 }] } });
+  expect(utils.httpPost).toHaveBeenCalledTimes(1);
+});
+
+test('upgrade with an unreadable published version stops before mutation', async () => {
+  withPublishedVersion(undefined);
+  await expect(run(['update', 'form', 'APP_TEST', '--form-uuid', 'FORM-TEST', '--inst-id', 'FINST-NEW',
+    '--data-json', '{"textField_name":"A"}', ...flags, '--use-latest-version', 'y']))
+    .rejects.toMatchObject({ code: 'DATA_FORM_UPGRADE_VERSION_UNVERIFIED' });
+  expect(utils.httpPost).not.toHaveBeenCalled();
 });
 
 test('read-only native editor behavior still stops a verified update before mutation', async () => {

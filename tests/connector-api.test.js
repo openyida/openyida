@@ -14,6 +14,7 @@ const utils = require('../lib/core/utils');
 const {
   createConnection,
   listConnections,
+  listAllConnections,
   saveConnector,
   testConnector,
 } = require('../lib/connector/api');
@@ -104,6 +105,42 @@ describe('connector frontend API contract', () => {
     });
   });
 
+  test('creation omits the edit-only connectorName and resolves an ID-only response by ID', async () => {
+    const params = buildConnectorParams();
+    utils.httpPost.mockResolvedValue({ success: true, content: { id: 101 } });
+    utils.httpGet.mockResolvedValue({ success: true, content: { ...params, id: 101, connectorName: 'Http_NATIVE' } });
+    await expect(saveConnector(params, authRef)).resolves.toMatchObject({ connectorId: 101, connectorName: 'Http_NATIVE' });
+    const post = require('querystring').parse(utils.httpPost.mock.calls[0][2]);
+    expect(post).not.toHaveProperty('connectorName');
+    expect(utils.httpGet.mock.calls[0][1]).toContain('id=101');
+    expect(utils.httpGet.mock.calls[0][1]).not.toContain('connectorName=');
+  });
+
+  test('editing a detail snapshot with an empty HTTP category retains its list category', async () => {
+    const params = buildConnectorParams({ id: 101, category: '' });
+    utils.httpPost.mockResolvedValue({ success: true, content: 101 });
+    utils.httpGet.mockResolvedValue({ success: true, content: params });
+    await expect(saveConnector(params, authRef)).resolves.toMatchObject({ readbackVerified: true });
+    const post = require('querystring').parse(utils.httpPost.mock.calls[0][2]);
+    expect(post.category).toBe('http');
+    expect(post.id).toBe('101');
+    expect(post.connectorName).toBe(params.connectorName);
+  });
+
+  test.each([true, false])('new connector accepts its server-assigned name (name in write response: %s)', includesName => {
+    const params = buildConnectorParams();
+    utils.httpPost.mockResolvedValue({ success: true, content: includesName ? { id: 101, connectorName: 'Http_SERVER' } : 101 });
+    utils.httpGet.mockResolvedValue({ success: true, content: { ...params, id: 101, connectorName: 'Http_SERVER' } });
+    return expect(saveConnector(params, authRef)).resolves.toMatchObject({ connectorName: 'Http_SERVER', readbackVerified: true });
+  });
+
+  test('updating a connector still rejects a changed internal name', async () => {
+    const params = buildConnectorParams({ id: 101 });
+    utils.httpPost.mockResolvedValue({ success: true, content: { id: 101, connectorName: 'Http_OTHER' } });
+    utils.httpGet.mockResolvedValue({ success: true, content: { ...params, connectorName: 'Http_OTHER' } });
+    await expect(saveConnector(params, authRef)).rejects.toMatchObject({ code: 'CONNECTOR_READBACK_MISMATCH' });
+  });
+
   test('save uses the connector id from detail readback when the write response id differs', async () => {
     const params = buildConnectorParams();
     utils.httpPost.mockResolvedValue({
@@ -166,6 +203,16 @@ describe('connector frontend API contract', () => {
     expect(utils.httpGet).not.toHaveBeenCalled();
   });
 
+  test('platform rejection remains a structured error in JSON/quiet CLI mode', async () => {
+    const { shouldUseStructuredErrorOutput } = require('../lib/core/cli-error');
+    utils.httpPost.mockResolvedValue({ success: false, errorCode: 'PLATFORM_FAILURE', errorMsg: 'Database operation timed out' });
+    let error;
+    try { await saveConnector(buildConnectorParams(), authRef); } catch (caught) { error = caught; }
+    expect(error).toMatchObject({ isCliError: true, code: 'CONNECTOR_WRITE_REJECTED', writeAttempted: true,
+      details: { retrySafe: false, platformErrorCode: 'PLATFORM_FAILURE' } });
+    expect(shouldUseStructuredErrorOutput(error, ['--json'])).toBe(true);
+  });
+
   test('localizes the write identity error outside zh', async () => {
     setLanguage('en');
     utils.httpPost.mockResolvedValue({ success: true, content: {} });
@@ -191,6 +238,18 @@ describe('connector frontend API contract', () => {
     expect(utils.httpPost.mock.calls[0][1]).toContain('/query/connection/listConnection.json');
     expect(utils.httpPost.mock.calls[0][2]).toContain('pageSize=100');
     expect(utils.httpPost.mock.calls[0][2]).toContain('pageNumber=1');
+    expect(utils.httpPost.mock.calls[0][2]).toContain('currentPage=1');
+  });
+
+  test('account pagination advances both native deployed page parameter names', async () => {
+    utils.httpPost
+      .mockResolvedValueOnce({ success: true, content: { data: Array.from({ length: 100 }, (_, id) => ({ id: id + 1 })), totalCount: 101 } })
+      .mockResolvedValueOnce({ success: true, content: { data: [{ id: 101 }], totalCount: 101 } });
+    expect(await listAllConnections('Http_owned', authRef)).toHaveLength(101);
+    expect(utils.httpPost).toHaveBeenCalledTimes(2);
+    const second = new URLSearchParams(utils.httpPost.mock.calls[1][2]);
+    expect(second.get('pageNumber')).toBe('2');
+    expect(second.get('currentPage')).toBe('2');
   });
 
   test('connection creation writes once and recovers the exact owned account by readback', async () => {

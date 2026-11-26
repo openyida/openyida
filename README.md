@@ -269,6 +269,8 @@ For the current custom page native-component support matrix, see [Yida native co
 
 ### Workflow, Data, and Permissions
 
+Historical ordinary-form updates do not request an upgrade by default. Explicitly pass `--use-latest-version y` to request an upgrade; submitted fields and the instance version are then always verified. An ineffective upgrade fails without replaying the write. See [historical record updates](docs/guides/form-version-update.md).
+
 ```bash
 openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/fields.json .cache/openyida/process/process.json
 openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
@@ -566,11 +568,25 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida form-view <list\|inspect\|save\|create\|order\|rename\|add-button> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--button <buttonUuid>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | Native form views: list, inspect and configure columns, widths, frozen columns and filters |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native custom buttons: inspect and configure form edits, automation flows and page links |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | Native form notifications: inspect triggers, recipients and templates, then safely maintain bindings |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | Get one form Schema or all form Schemas |
-| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | Check resources, frontend menu hiding and application theme delivery |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json\|--canvas-source-dir <dir>]` | Get one form Schema or all form Schemas |
+| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | Check resources, navigation visibility and application theme |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | Validate design documents, theme tokens and PRD handoff |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | Export app entity relationship diagram |
-| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
+| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom page |
+| `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a native YiDA portal |
+| `openyida datav templates <appType> [--page <value>] [--page-size <value>] [--json]` | List native DataV screen templates |
+| `openyida datav create <appType> <name> [--template <value>] [--locale <value>] [--wait-seconds <value>] [--json]` | Create a native YiDA DataV screen |
+| `openyida datav inspect <appType> <formUuid> [--json]` | Inspect native DataV status and URLs |
+| `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | List DataV components and parameter definitions |
+| `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | Read DataV canvas and layer configuration |
+| `openyida datav data <appType> <formUuid> --component <value> [--json]` | Read a native DataV YiDA query and configuration hash |
+| `openyida datav configure-data <appType> <formUuid> --component <value> --query-file <value> --expected-hash <value> [--json]` | Update the YiDA query of an existing DataV layer |
+| `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | Copy a native DataV screen |
+| `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | Rename a native DataV screen |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | Publish and enable a native DataV screen |
+| `openyida portal catalog [componentName] [--json]` | List configurable native portal components and theme options |
+| `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | Inspect native portal tiles and revision |
+| `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | Configure native portal tiles and layout |
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
 | `openyida check-page <src> [--compat] [--json]` | Check custom page standards |
 | `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--strict-theme\|--allow-fixed-brand] [--json]` | Compile custom page locally |
@@ -599,7 +615,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | Command | Description |
 |---------|-------------|
 | `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace] [--json]` | Configure and publish process rules; Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
-| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json]` | Create process form (all-in-one); Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json] \| create-process <appType> <formTitle> <fieldsJsonFile> --seed-template [--json] \| create-process <appType> --formUuid <formUuid> --seed-template [--json]` | Create process form (all-in-one); Supports append/forward via JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
 | `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
 | `openyida process fields <appType> <formUuid> [--json]` | Check process designer field loading and subtable field paths |
@@ -636,7 +652,8 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida connector delete-action <id> <operation-id>` | Delete an action |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | Test an action |
 | `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name> [--interactive]` | Create an auth connection |
+| `openyida connector connection <detail\|update> <connector-id> <connection-id> [--name <name>] [--confirm --interactive] [--json]` | Read account metadata or replace complete credentials using hidden terminal input. |
+| `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | Create an auth connection |
 | `openyida connector smart-create --curl "..."` | Generate a redacted action draft from cURL (no remote create) |
 | `openyida connector parse-api [options]` | Parse API information |
 | `openyida connector gen-template [output]` | Generate API document template |

@@ -7,7 +7,7 @@
 1. 加载 `yida-data-management`。复用创建结果中的 appType、formUuid、类型与字段；缺少映射时一次读取 `get-schema --field-map-json`。
 2. 按业务填写名称、状态、金额、日期等，选项取真实配置，成员/部门取可确认的 ID。单对象 1 条、列表 2 条、排行或分布 3 条即可。
 3. 用结构化文件工具保存 `.cache/openyida/<任务名>/data-import/records.json` 顶层数组，日期可用 ISO 或毫秒，由 seed 按业务时区转换。
-4. 普通表单执行 `data seed form`；流程示例执行[临时本人审批 → seed 核验 → 编辑流程 → 最终发布](../../yida-data-management/references/process-seed-workflow.md)。新建流程直接使用 create-process，原普通表单转流程继续使用 --formUuid。
+4. 普通表单执行 `data seed form`；流程示例执行[临时本人审批 → seed 核验 → 编辑流程 → 最终发布](../../yida-data-management/references/process-seed-workflow.md)。使用 `create-process --seed-template` 首发临时流程，原普通表单转流程时加 `--formUuid`。
 5. 先写被关联表，再写依赖记录；关联定义按最终 receipt/process 类型，值使用对应 formInstId/processInstanceId 与真实名称。
 6. 保留完整回执，按 recordIndex 复用 verified ID。seed 已完成实例及字段回读；页面继续读取真实数据验证可见字段。其他写入按 ID 定向 get/query 业务抽查，未知结果先核实。
 

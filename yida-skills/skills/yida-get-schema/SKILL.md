@@ -61,6 +61,7 @@ description: 确定性解析表单字段 ID、子表路径和表单行为语义�
 openyida get-schema <appType> <formUuid> --compact [--resolve-fields <labelOrFieldId,...>]
 openyida get-schema <appType> <formUuid> [--summary-json|--field-map-json]
 openyida get-schema <appType> <formUuid> --analysis-json
+openyida get-schema <appType> <formUuid> --canvas-source-dir <dir> --json
 openyida get-schema <appType> --all [--summary-json|--analysis-json] [--output-dir <dir>] [--keyword <text>] [--concurrency N] [--retries N]
 ```
 
@@ -79,6 +80,7 @@ openyida get-schema <appType> --all [--summary-json|--analysis-json] [--output-d
 | `--retries N` | 否 | 单个 Schema 失败后的重试次数，默认 1，范围 0-5 |
 | `--summary-json` / `--field-map-json` | 否 | 只输出字段摘要 JSON，不把完整 Schema 放入 stdout；`--field-map-json` 是语义别名 |
 | `--analysis-json` | 否 | 输出 `yida_schema_semantic_analysis` contract v1：字段摘要、动作函数/绑定、URL 参数、字段 mutation、只读/隐藏、校验、公式/联动、关联和数据源摘要；不回显动作源码 |
+| `--canvas-source-dir <dir>` | 否 | 导出一个 Canvas 页面的源码和完整 Schema 到新目录，stdout 返回文件路径；单独使用，不与批量或字段分析模式混用 |
 
 ### 单表模式
 
@@ -93,6 +95,8 @@ Agent 只需要少量字段 ID 时，默认使用 `--compact --resolve-fields`�
 需要全量字段摘要和选项时继续使用 `--summary-json`。只有需要组件完整 props、布局结构、字段数据源配置或排障时，才执行不带 compact/summary 参数的完整 Schema 输出。
 
 反向分析时读取 `--analysis-json`，重点区分：源码字节数大不等于业务行为多；以 `urlParams`、`fieldMutations`、动作绑定、字段行为、关联规则和数据源摘要判断业务语义。需要等价迁移时，把字段结构与行为结构分别交给 `yida-create-form-page`，不要把缺失行为误报成“字段已创建所以表单完成”。
+
+修改已有 Canvas 页面时，加载 `use_skill("yida-openyida-publish-guard")`，用 `--canvas-source-dir` 取得 `page.canvas.jsx` 与 `schema.json`。目录应尚未存在。页面必须有一个可取回源码的 `YidaCodeCanvas` 组件。
 
 消费输出时读取完整 JSON，再由 agent / 脚本解析字段；不要用 `tail -20`、`head -30` 或 `grep` 只看局部 stdout。局部查看可以作为人工调试，但不能作为后续写页面、写数据或配置流程的字段证据。
 

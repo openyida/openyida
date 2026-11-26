@@ -93,6 +93,26 @@ describe('connector shared contract', () => {
     expect(canonicalizeConnectorTestResponse({ success: true, content: canonical })).toEqual(canonical);
   });
 
+  test.each([
+    [404, {}],
+    ['404', { statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: '{"ok":true}' }],
+  ])('reports platform error %p before interpreting the test result %j', (errorCode, content) => {
+    expect(() => canonicalizeConnectorTestResponse({
+      success: true, errorCode, errorMsg: 'No handler found, token=private-value', content,
+    })).toThrow(expect.objectContaining({
+      code: 'CONNECTOR_TEST_ENVELOPE_FAILED',
+      message: 'No handler found, token=***',
+      details: expect.objectContaining({
+        platformErrorCode: '404', retrySafe: false, sideEffectState: 'unknown',
+      }),
+    }));
+  });
+
+  test.each([null, '', 0, '0'])('accepts a successful envelope with empty or zero errorCode %p', errorCode => {
+    const result = { statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: { errorCode: 404 } };
+    expect(canonicalizeConnectorTestResponse({ success: true, errorCode, content: result })).toEqual(result);
+  });
+
   test('fails closed for unknown envelopes and non-2xx status lines', () => {
     try {
       canonicalizeConnectorTestResponse({
@@ -129,6 +149,22 @@ describe('connector shared contract', () => {
     })).toThrow(expect.objectContaining({ code: 'CONNECTOR_TEST_HTTP_FAILED' }));
   });
 
+  test('preserves safe HTTP failure diagnostics and does not expose response headers or arbitrary body values', () => {
+    try {
+      canonicalizeConnectorTestResponse({ statusLine: 'HTTP/1.1 403 Forbidden',
+        responseHeaders: { Authorization: 'Bearer must-not-leak' },
+        content: JSON.stringify({ code: 'Forbidden.AccessDenied', message: 'token=must-not-leak',
+          extra: 'business-private-value' }) });
+      throw new Error('Expected HTTP failure');
+    } catch (error) {
+      expect(error).toMatchObject({ code: 'CONNECTOR_TEST_HTTP_FAILED', details: {
+        statusCode: 403, businessErrorCode: 'Forbidden.AccessDenied', businessErrorMessage: 'token=***',
+        retrySafe: false, sideEffectState: 'unknown',
+      } });
+      expect(JSON.stringify(error.details)).not.toMatch(/must-not-leak|business-private-value/);
+    }
+  });
+
   test('treats DingTalk errcode responses as business failures without exposing arbitrary values', () => {
     expect(() => canonicalizeConnectorTestResponse({
       statusLine: 'HTTP/1.1 200 OK',
@@ -149,6 +185,24 @@ describe('connector shared contract', () => {
       statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: { errcode: 0, result: { unionid: 'u1' } },
     })).toMatchObject({ content: { errcode: 0, result: { unionid: 'u1' } } });
   });
+
+  test.each([
+    { success: false, code: 'REJECTED', message: 'business failure' },
+    { hasError: true, errorCode: 'AUTH_FAILED' },
+    { code: 'AuthenticationFailed.MissingParameter', message: 'missing token' },
+  ])('rejects explicit failure inside an HTTP 200 response: %j', content => {
+    expect(() => canonicalizeConnectorTestResponse({ success: true, content: {
+      statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content: JSON.stringify(content),
+    } })).toThrow(expect.objectContaining({ code: 'CONNECTOR_TEST_BUSINESS_FAILED',
+      details: expect.objectContaining({ retrySafe: false, sideEffectState: 'unknown' }) }));
+  });
+
+  test.each([{ code: 200, message: 'OK' }, { code: 'OK' }, { success: true }, { success: 'false' }])(
+    'does not guess failure from an application-specific code: %j', content => {
+      expect(canonicalizeConnectorTestResponse({
+        statusLine: 'HTTP/1.1 200 OK', responseHeaders: {}, content,
+      }).content).toEqual(content);
+    });
 
   test('localizes contract errors outside zh', () => {
     setLanguage('en');

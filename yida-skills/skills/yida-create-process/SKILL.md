@@ -63,9 +63,18 @@ openyida create-process <appType> --formUuid <已有普通表单UUID> <processDe
 
 ## 准备流程示例
 
-需要示例数据时，按[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)执行：**创建本人审批临时流程 → seed 并核验 → 编辑流程 → 发布最终审批流**。全程使用同一表单；示例会产生真实本人待办。旧示例保留旧版本，后续申请使用最终版本。
+完整应用首次搭建且确认需要流程示例时，首次发布使用内置临时流程：
+
+```bash
+openyida create-process <appType> <formTitle> <fieldsJsonFile> --seed-template --json
+openyida create-process <appType> --formUuid <已有普通表单UUID> --seed-template --json
+```
+
+`--seed-template` 代替流程定义文件，生成唯一一个「发起人本人」审批节点。业务节点、主管、角色和抄送留到 seed 核验后的最终发布。全程使用同一表单和流程编码，完整顺序见[流程 seed 编排](../yida-data-management/references/process-seed-workflow.md)。
 
 ## 输出与恢复
+
+新建流程时，默认列表的列顺序只保存一次并立即回读。若保存已受理但回读失败，CLI 继续发布流程，回执中的 `defaultView.readbackVerified=false` 表示列顺序待确认。`defaultView` 保留视图 ID、备份路径和错误码，可用 `form-view inspect` 复核。流程发布结果见 `processVersion` 和 `platformViewVerified`。
 
 成功以 `success=true`、`verificationLevel=PLATFORM_VIEW_VERIFIED`、`platformViewVerified=true` 为准。它证明平台配置回读通过；实际审批、字段编辑和通知按业务验收。
 

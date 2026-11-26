@@ -74,7 +74,7 @@ describe('export-app', () => {
         sourceAppType: 'APP_XXX',
         baseUrl: 'https://www.aliwork.com',
         forms: [
-          { formUuid: 'FORM_A', name: '客户表', formType: 'receipt' },
+          { formUuid: 'FORM_A', alias: 'FORM_A', name: '客户表', formType: 'receipt' },
           { formUuid: 'PAGE_B', name: '看板', formType: 'display' },
         ],
       });

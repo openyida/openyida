@@ -295,6 +295,8 @@ openyida data query subform APP_XXX FORM_XXX --inst-id FORM_INST_XXX --table-fie
 
 录入或更新数据前先用 `openyida get-schema` 获取真实 fieldId。`DateField` / `CascadeDateField` 使用 13 位毫秒时间戳，例如 `1719705600000`。
 
+历史普通表单记录默认不请求升级。需要写入后来新增的字段时，显式传入 `--use-latest-version y`；该选择会强制回读提交字段及实例版本，升级未生效会返回非零且不自动重写。详见[历史记录版本更新](docs/guides/form-version-update.md)。
+
 ### 报表和 ECharts
 
 ```bash
@@ -433,11 +435,25 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida form-view <list\|inspect\|save\|create\|order\|rename\|add-button> <appType> <formUuid> [viewUuid] [--config <file>] [--name <title>] [--button <buttonUuid>] [--with-config] [--expected-hash <hash>] [--backup <file>] [--replace] [--json]` | 原生表单视图：查询、检查并配置显示列、列宽、冻结列和筛选 |
 | `openyida custom-button <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [buttonUuid] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生自定义按钮：查询、配置填写表单、自动化流及页面跳转 |
 | `openyida form-message <list\|inspect\|options\|create\|update\|delete> <appType> <formUuid> [messageId] [--config <file>] [--expected-hash <hash>] [--backup <file>] [--yes] [--json]` | 原生表单消息通知：查询触发、接收对象与模板并安全维护配置 |
-| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json]` | 获取单个或全部表单 Schema |
-| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源数量、前台菜单隐藏及应用主题同步 |
+| `openyida get-schema <appType> <formUuid\|--all> [--summary-json\|--field-map-json\|--analysis-json\|--canvas-source-dir <dir>]` | 获取单个或全部表单 Schema |
+| `openyida check-prd-completeness (<prd.md> [--build-manifest <file>] \| --build-spec <build-context.json> [--build-manifest <file>] \| --manifest-only --build-manifest <file>) --app-type <appType> [--json]` | 检查资源、导航显隐及应用主题 |
 | `openyida check-design <design.md> [--prd <prd.md>] [--base-dir <dir>] [--json]` | 检查设计文档、主题变量与 PRD 交接 |
 | `openyida er <appType> [--format mermaid\|json] [--output file] [--include-system] [--include-pages]` | 导出应用实体关系图 |
-| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义展示页面 |
+| `openyida create-page <appType> "<name>" [--mode dashboard] [--hide-nav] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建自定义页面 |
+| `openyida create-portal <appType> "<name>" [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | 创建宜搭原生门户 |
+| `openyida datav templates <appType> [--page <value>] [--page-size <value>] [--json]` | 查询原生大屏模板 |
+| `openyida datav create <appType> <name> [--template <value>] [--locale <value>] [--wait-seconds <value>] [--json]` | 创建宜搭原生大屏 |
+| `openyida datav inspect <appType> <formUuid> [--json]` | 回读原生大屏状态与入口 |
+| `openyida datav components <appType> <formUuid> [--component <value>] [--category <value>] [--search <value>] [--json]` | 查询大屏组件目录与参数定义 |
+| `openyida datav config <appType> <formUuid> [--component <value>] [--json]` | 读取大屏画布与图层配置 |
+| `openyida datav data <appType> <formUuid> --component <value> [--json]` | 读取大屏宜搭数据查询与配置哈希 |
+| `openyida datav configure-data <appType> <formUuid> --component <value> --query-file <value> --expected-hash <value> [--json]` | 更新已有大屏图层的宜搭数据查询 |
+| `openyida datav copy <appType> <formUuid> <name> [--locale <value>] [--wait-seconds <value>] [--json]` | 复制宜搭原生大屏 |
+| `openyida datav rename <appType> <formUuid> <name> [--locale <value>] [--json]` | 修改原生大屏名称 |
+| `openyida datav publish <appType> <formUuid> --confirm [--json]` | 发布并启用原生 DataV 大屏 |
+| `openyida portal catalog [componentName] [--json]` | 查看原生门户可配置的组件和主题 |
+| `openyida portal inspect <appType> <formUuid> [--editable] [--json]` | 查看原生门户磁贴与版本 |
+| `openyida portal configure <appType> <formUuid> <file> [--expected-revision <revision>] [--dry-run] [--json]` | 配置原生门户磁贴与布局 |
 | `openyida build-page <sourceFile> [--output file\|--write]` | 构建宜搭兼容页面源码 |
 | `openyida check-page <src> [--compat] [--json]` | 检查自定义页面规范 |
 | `openyida compile <src> [--canvas] [--compat] [--skip-lint] [--strict-theme\|--allow-fixed-brand] [--json]` | 本地编译自定义页面 |
@@ -466,7 +482,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | 命令 | 说明 |
 |------|------|
 | `openyida configure-process <appType> <formUuid> <definition> [processCode] [--replace] [--json]` | 配置并发布流程规则; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
-| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
+| `openyida create-process <appType> <formTitle> <fieldsJsonFile> <processDefinitionFile> [--replace] [--json] \| create-process <appType> --formUuid <formUuid> <processDefinitionFile> [--replace] [--json] \| create-process <appType> <formTitle> <fieldsJsonFile> --seed-template [--json] \| create-process <appType> --formUuid <formUuid> --seed-template [--json]` | 创建流程表单（一体化）; 支持加签/转交，配置位于 JSON nodes[].actions.normalActions/appendActions |
 | `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | 管理流程表单 AI 审批提示 |
 | `openyida process preview <appType> ...` | 预览流程实例（可视化流程图） |
 | `openyida process fields <appType> <formUuid> [--json]` | 检查流程设计器字段加载和子表字段路径 |
@@ -503,7 +519,8 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida connector delete-action <id> <operation-id>` | 删除执行动作 |
 | `openyida connector test --connector-id <id> --action <actionId> [--path-json JSON] [--query-json JSON] [--header-json JSON] [--body-json JSON] [--account-id <id>] [--system-token-app <appType>] [--ignore-defaults]` | 测试执行动作 |
 | `openyida connector list-connections <id>` | 列出鉴权账号 |
-| `openyida connector create-connection <id> <name> [--interactive]` | 创建鉴权账号 |
+| `openyida connector connection <detail\|update> <connector-id> <connection-id> [--name <name>] [--confirm --interactive] [--json]` | 读取鉴权账号元数据，或通过终端隐藏输入完整替换凭据。 |
+| `openyida connector create-connection <id> <name> [--interactive] [--repair-api-key-scheme]` | 创建鉴权账号 |
 | `openyida connector smart-create --curl "..."` | 从 cURL 生成脱敏动作草稿（不创建远端资源） |
 | `openyida connector parse-api [options]` | 解析接口信息 |
 | `openyida connector gen-template [output]` | 生成接口文档模板 |

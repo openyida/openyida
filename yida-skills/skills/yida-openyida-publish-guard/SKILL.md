@@ -28,7 +28,7 @@ Do not use this skill for creating a brand-new page that has no existing live sc
 
 ## Required Workflow
 
-1. Confirm the target `appType`, `formUuid`, and local source path.
+1. Identify the target `appType` and `formUuid` from the active page or bound context. Check the local source path if it exists.
 2. Check the OpenYida environment and login state:
 
 ```bash
@@ -36,7 +36,15 @@ openyida env --json
 openyida login --check-only --json
 ```
 
-3. Fetch the live schema before editing or publishing:
+3. For an existing Canvas page, export both the editable source and current schema in one call. Choose a fresh directory under the project cache:
+
+```bash
+openyida get-schema <appType> <formUuid> --canvas-source-dir project/.cache/openyida/publish-guard/<snapshot> --json
+```
+
+The path above is relative to the workspace root. From the project root, use `.cache/openyida/publish-guard/<snapshot>`. Read `sourceFile` for the relevant component or handler and keep `schemaFile` for checking the page configuration. If the local source is missing, use the exported source as the starting point. Keep the snapshot as a baseline and make the targeted edit in a working source file.
+
+For a legacy JSX page, fetch its current schema:
 
 ```bash
 openyida get-schema <appType> <formUuid> --json
@@ -44,7 +52,7 @@ openyida get-schema <appType> <formUuid> --json
 
 If the schema needs to be inspected from a file, save stdout with the agent's structured file write tool to `<projectRoot>/.cache/openyida/publish-guard/live-<formUuid>.json`. From the workspace root that path is typically `project/.cache/openyida/publish-guard/live-<formUuid>.json`. Do not use shell redirection and do not commit fetched live schema files.
 
-4. Inspect the fetched live page for current code and configuration. For custom display pages, check at least:
+4. Inspect the fetched live page for current code and configuration. Use the relevant data sources and component tree when comparing Canvas pages. For legacy JSX pages, also check:
 
 - `pages[].componentsTree[].methods.__initMethods__.source`
 - `pages[].componentsTree[].methods.__initMethods__.compiled`

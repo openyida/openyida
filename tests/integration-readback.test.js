@@ -127,6 +127,25 @@ describe('integration control-plane readback', () => {
     }]);
   });
 
+  test('native rule tree is authoritative over stale childList metadata', () => {
+    const detail = { schema: { children: [{ id: 'connector-1', componentName: 'ConnectorNode', props: { connectorRules: {
+      connectorId: 'Http_owned', actionId: 'owned', rules: [{ name: 'Body', valueType: 'Object',
+        childList: [{ name: 'systemToken', rules: [{ valueType: 'literal', value: 'stale-secret' }] }],
+        rules: [
+          null,
+          { name: 'systemToken', valueType: 'literal', value: '' },
+          { name: 'options', valueType: 'Object', rules: [{ name: 'count', valueType: 'literal', value: 7 }] },
+        ],
+      }],
+    } } }] } };
+    expect(projectConnectorAssignments(detail)[0].assignments).toEqual([
+      { path: 'Body.options.count', valueType: 'literal', value: 7 },
+      { path: 'Body.systemToken', valueType: 'literal', bound: false },
+    ]);
+    expect(projectSystemTokenBindings(detail)[0].bindings).toEqual([{ target: 'body.systemToken', bound: false }]);
+    expect(JSON.stringify(projectConnectorAssignments(detail))).not.toContain('stale-secret');
+  });
+
   test('requires exact connector assignment readback when requested', async () => {
     const expected = [{
       nodeId: 'connector-1', connectorId: 'Http_owned', actionId: 'queryUser',

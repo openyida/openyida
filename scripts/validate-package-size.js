@@ -97,7 +97,19 @@ const path = require('path');
 // Node 20 measures about 2,706 KiB compressed and 9,920 KiB unpacked; keep bounded headroom.
 // Form data seeding, schema guards, and the Canvas sample merged with main
 // measure 2,789,968 compressed bytes on Node 20.18.1. Use the next 16 KiB boundary.
-const MAX_TARBALL_BYTES = 2736 * 1024;
+// Nested connector JSON compilation, account maintenance and explicit historical
+// form upgrades combined with main: CI Node 20.20.2 measures 2,803,299 compressed
+// bytes / 10,248,580 unpacked bytes, 814 files. Advance byte ratchets one 16 KiB
+// step for this shipped content; entry and single-file limits stay unchanged.
+// Native portal configuration adds the schema builder, CLI and component guide.
+// Portal and PR #701 together measure 2,827,540 packed bytes on Node 20.18.1.
+// Native DataV lifecycle CLI and its dedicated skill: Node 20.18.1 measures
+// 2,836,272 compressed / 10,363,078 unpacked bytes, 820 files.
+// Advance to the next 16 KiB boundaries; keep the per-file cap unchanged.
+// DataV component/interaction and application-theme guidance: Node 20.18.1
+// measures 2,852,227 compressed bytes; retain the next 16 KiB boundary.
+// Process sample guards and sandbox refresh together measure 2,867,335 packed bytes on Node 23.
+const MAX_TARBALL_BYTES = 2816 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -249,7 +261,22 @@ const MAX_TARBALL_BYTES = 2736 * 1024;
 // packaged workflow reference. Merged Node 23 measurement: 10,226,230 bytes /
 // 813 files, 2,614 bytes above the previous limit. Use the next 16 KiB boundary;
 // compressed, entry-count and individual-file limits stay unchanged.
-const MAX_UNPACKED_BYTES = 10000 * 1024;
+// PR #701 merged with main@742304e5 measures 10,272,799 unpacked bytes
+// before this budget note (814 files). Use the next 16 KiB boundary;
+// compressed, entry-count and single-file limits stay unchanged.
+// Portal catalog, editable exports and theme patches add runtime and skill content.
+// After merging app metadata and agent runtime updates, Node 20 measures
+// 10,282,883 unpacked bytes. Use the next 16 KiB boundary.
+// The same merge measures 10,333,800 unpacked bytes across 818 entries.
+// DataV catalogue/config reader and its component guide measure 10,392,845
+// unpacked bytes on Node 20; retain the next 16 KiB boundary. Gzip cap stays fixed.
+// DataV theme creation/editing and capability guidance measures 10,406,101
+// unpacked bytes / 822 files; retain the next 16 KiB boundary.
+// Canvas source export and its skill guidance measure 10,421,638 bytes on Node 20.
+// Round to the next 16 KiB boundary.
+// The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
+// Process sample safeguards and default-view readback together measure 10,461,568 unpacked bytes.
+const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -293,10 +320,22 @@ const MAX_UNPACKED_BYTES = 10000 * 1024;
 // The task-concurrency runtime adds exactly one packaged module.
 // Independent Fast theme generation adds one runtime module; byte budgets are unchanged.
 // Main file-upload support adds three packaged files.
-const MAX_ENTRY_COUNT = 814;
+// The dedicated native portal skill adds one packaged entry.
+// DataV adds exactly one runtime module and one skill document.
+// One DataV reader module and one configuration reference add two package files.
+// Native DataV query updates add one runtime module and one focused skill guide.
+// Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
+// Byte and per-file budgets remain unchanged; account only for these two shipped files.
+// The report-to-native-datav orchestration skill adds one packaged entry.
+const MAX_ENTRY_COUNT = 825;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/skills/report-to-native-datav/SKILL.md',
+  'lib/app/datav.js',
+  'lib/app/datav-designer.js',
+  'yida-skills/skills/yida-datav/references/components-and-configuration.md',
+  'yida-skills/skills/yida-datav/SKILL.md',
   'lib/core/babel.js',
   'yida-skills/references/user-facing-summary.md',
   'lib/navigation/page-navigation.js',

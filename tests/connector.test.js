@@ -138,6 +138,32 @@ describe('connector curl parsing and action generation', () => {
     expect(authHeader.value).toBe('');
   });
 
+  test('curl Body keeps nested objects, booleans and object-array leaves available for mapping', () => {
+    const body = JSON.stringify({ duration: { bizType: 2, options: { enabled: false } },
+      rows: [{ amount: 1.5, name: 'first' }], tags: ['a'], empty: [], note: null });
+    const operation = normalizeOperations([generateOperation({ path: '/v1/duration', method: 'POST', body }, [])])[0];
+    expect(operation.parameters.body.default).toBe(body);
+    const roots = operation.inputs.find(input => input.name === 'Body').childList;
+    const duration = roots.find(node => node.name === 'duration');
+    expect(duration).toMatchObject({ paramType: 'Object', paramLocation: 'body' });
+    expect(duration.childList.find(node => node.name === 'bizType').paramType).toBe('Number');
+    const enabled = duration.childList.find(node => node.name === 'options').childList[0];
+    expect(enabled).toMatchObject({ name: 'enabled', paramType: 'Boolean', paramLocation: 'body',
+      _key: 'v1_duration%duration%options%enabled', __level: 2 });
+    expect(duration.children).toEqual(duration.childList);
+    expect(roots.find(node => node.name === 'rows')).toMatchObject({ paramType: 'Array',
+      childList: [expect.objectContaining({ name: 'amount', paramType: 'Number', paramLocation: 'body' }),
+        expect.objectContaining({ name: 'name', paramType: 'String' })] });
+    expect(roots.find(node => node.name === 'tags').paramType).toBe('Array');
+    expect(roots.find(node => node.name === 'empty').childList).toEqual([]);
+  });
+
+  test.each(['null', '[{"amount":2}]', 'false', '5', 'raw text'])('preserves raw non-object Body without inventing mapping fields: %s', body => {
+    const operation = generateOperation({ path: '/v1/raw', method: 'POST', body }, []);
+    expect(operation.parameters.body.default).toBe(body);
+    expect(operation.inputs.find(input => input.name === 'Body')).toMatchObject({ paramType: 'String', defaultValue: body });
+  });
+
   test('isSensitiveHeader matches credential-bearing headers case-insensitively', () => {
     expect(isSensitiveHeader('Authorization')).toBe(true);
     expect(isSensitiveHeader('X-Api-Key')).toBe(true);
@@ -195,6 +221,21 @@ describe('connector response and API document parsing', () => {
     expect(outputs.paramType).toBe('Object');
     expect(JSON.parse(outputs.defaultValue)).toMatchObject({ success: false });
     expect(outputs.childList).toHaveLength(2);
+    expect(outputs.childList.find(field => field.name === 'success'))
+      .toMatchObject({ successFlag: true, successCondition: 'isTrue' });
+    expect(generateChildList(schema, 'op').find(field => field.name === 'success')).not.toHaveProperty('successFlag');
+  });
+
+  test('success conditions only follow a top-level boolean contract and preserve explicit outputs', () => {
+    for (const type of ['string', 'integer']) {
+      const outputs = generateOutputs({ type: 'object', properties: { success: { type }, code: { type: 'integer' } } }, 'op');
+      expect(outputs.childList.every(field => field.successFlag === undefined)).toBe(true);
+    }
+    const explicit = [{ name: 'Response', paramType: 'Object', childList: [
+      { name: 'success', paramType: 'Boolean', successFlag: false, successCondition: '' },
+    ] }];
+    const [operation] = normalizeOperations({ operationId: 'explicitOutput', url: 'probe', responses: schema, outputs: explicit });
+    expect(operation.outputs).toEqual(explicit);
   });
 
   test('MarkdownParser and convertToOperationConfig parse docs into an operation config', () => {
@@ -315,6 +356,23 @@ describe('connector response and API document parsing', () => {
 });
 
 describe('connector operation normalization', () => {
+  test.each(['durationAction', 'uuid-123', 17, 0, null, '', {}, 'operation-'])('rejects new IDs that cannot survive a native designer edit: %j', id => {
+    expect(() => normalizeOperations([{ id, operationId: 'duration', url: 'v1/duration' }]))
+      .toThrow(expect.objectContaining({ code: 'CONNECTOR_OPERATION_UI_ID_INVALID' }));
+  });
+
+  test('existing remote IDs remain untouched when normalizing a delete target', () => {
+    const [operation] = normalizeOperations([{ id: 'legacy-action', operationId: 'duration', url: 'v1/duration' }],
+      { preserveExistingIds: true });
+    expect(operation.id).toBe('legacy-action');
+  });
+
+  test('rejects duplicate UI IDs even when operationIds differ', () => {
+    expect(() => normalizeOperations([
+      { id: 'operation-shared', operationId: 'one', url: 'v1/one' },
+      { id: 'operation-shared', operationId: 'two', url: 'v1/two' },
+    ])).toThrow(expect.objectContaining({ code: 'CONNECTOR_OPERATION_ID_DUPLICATE' }));
+  });
   test('normalizes legacy name/path actions before saving to Yida', () => {
     const [operation] = normalizeOperations([
       {

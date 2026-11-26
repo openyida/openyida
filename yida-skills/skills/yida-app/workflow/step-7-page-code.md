@@ -22,6 +22,8 @@ Fast 按 [阶段输入映射](../references/fast-context.md) 直接使用已确�
 
 ## 操作
 
+确认页面为原生门户时，交给 `yida-create-portal` 配置与验收。以下 Canvas 实现步骤用于 display 页面。
+
 自定义待办中心或审批任务区块只在用户显式要求该实现方式，或 ask_human 明确确认后加载 `yida-task-center`，由 CLI 装配。缺少选择时不因已有 Canvas、工作台或辅助待办指标自动进入；返回编排阶段确认或保留原生能力。继续沿用本应用 `design.md` 和主题，不追加另一套品牌与导航。
 
 **先接通主题与动作**：给页面实现者传入真实资源映射（appType、目标类型、formUuid/navUuid；详情另带 formInstId 的数据来源）。含 antd 控件先提取并合并 `canvas-theme`；跨页入口先提取 `canvas-navigation`，按 [动作与目标清单](../../yida-canvas-custom-page/references/navigation-and-entry-guide.md#先建立动作与目标清单) 实现。页面内 Tab 使用状态，不拼平台路由；暂缺资源的动作禁用，独立页面布局继续开发。完成后逐项核对 Tab/按钮/链接各交互状态的主题色及最终地址，不把编译通过当作换肤或跳转验收。

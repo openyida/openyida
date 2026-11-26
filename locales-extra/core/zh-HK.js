@@ -6,6 +6,31 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  connector_runtime: require('../../lib/core/locales/zh').connector_runtime,
+  connector_account: require('../../lib/core/locales/zh').connector_account,
+  data_upgrade: {
+    subform_choice_unverified: '無法確認子表的歷史欄位清單，未發起寫入。請核對是否需要升級此記錄，並明確選擇 --use-latest-version y 後再提交。',
+    invalid_choice: '請用 --use-latest-version y 或 n 明確選擇是否升級目前記錄。',
+    choice_required: '本次包含歷史實例中不存在的欄位，請明確選擇 --use-latest-version y 請求升級；未發起寫入。',
+    version_unverified: '無法確認已發佈的表單版本，未發起升級寫入。',
+    null_unsupported: '原生升級介面會忽略 null 值，本次未發起寫入；需要清空這些欄位時請使用原生編輯器。',
+    write_unverified: '無法確認升級寫入結果，請先回讀現有記錄再決定後續操作，不要自動重複寫入。',
+  },
+  workflow_cycle: {
+    invalid: "循環配置不完整或超出限制。每條自動化可配置一個循環，循環體最多包含五個計數節點。",
+    node_unavailable: "OpenYida 在此循環場景不支援節點 {0}。請在宜搭設計器查看可用節點。",
+    unavailable: "目前宜搭場景未開放循環容器。請在目標應用的設計器確認。",
+    unverified: "無法確認目前組織的循環權益或節點配置。請核對登入組織後重試。",
+    entitlement_required: "目前組織缺少循環容器權益。請聯絡組織管理員到宜搭官方頁面查看版本並升級：{0}",
+    published_unverified: "無法確認已發佈的自動化。請在宜搭設計器檢查發佈狀態。",
+  },
+  issue_fixes: {
+    invalid_api_key: 'API Key 設定必須包含有效的 name 和 header/query 位置；請先檢查連接器。',
+    repair_required: '舊 API Key 設定缺少 type/in/location；確認後加 --repair-api-key-scheme 修補並建立新帳號。',
+    replacement_notice: '現有帳號保持不變；請將呼叫方綁定至本次傳回的新帳號 ID。',
+    invalid_import: '遷移套件無效；請檢查 details 中的表單識別碼、Schema 或 alias。',
+    partial_import: '匯入未完成。請先檢查 yida-migration-report.json 中的現有資源，核實並封存報告後再進行新的匯入。',
+  },
   dingtalk_login: {
     select_version: '請選擇登入宜搭海外站的釘釘版本：',
     domestic: '釘釘國內版（宜搭海外，預設）',
@@ -109,9 +134,12 @@ module.exports = {
     readback_failed: 'Saved entries do not match the readback. Read and review the current entries; do not overwrite automatically.',
     frontend_display_required: '前台頁面 {0} 必須是 display 自訂頁面；表單入口請傳入已驗證的完整 URL。',
     page_not_in_app: '頁面 {0} 不屬於目前應用，無法登記為訪問入口；請用 list-forms 確認頁面歸屬。',
-    page_offline: '前台 custom 頁 {0} 尚未上線到獨立訪問地址，請先發布/上線後再登記。',
+    page_offline: '選單資料無法確認前台頁 {0} 已上線。如已發布且實測可存取，請用 --frontend 傳入完整網址。',
   },
   design_plan: {
+    confirmation_header: '搭建方案',
+    confirmation_build_description: '按目前方案建立應用程式、表單、流程及頁面。',
+    confirmation_edit_description: '繼續完善目前方案，確認後再開始搭建。',
     confirmation_required: '確認需要目前方案快照和版本，請先生成方案。',
     rebase_required: '首次物化前請修正 business.json/visual.json；主計劃已變更時，保留現有檔案並在原命令加入 --rebase-parts。',
     baseline_missing: '請從原工作區恢復匹配的 .build-plan-base.json；缺少可信基線時保留草稿並報告阻塞。',
@@ -190,7 +218,21 @@ module.exports = {
     cmd_get_schema: '取得表單 Schema',
     cmd_check_prd_completeness: 'Check PRD page/resource count risk',
     cmd_er: '導出應用實體關係圖',
-    cmd_create_page: '建立自訂展示頁面',
+    cmd_create_page: '建立自訂頁面',
+    cmd_datav_templates: '查詢原生大屏範本',
+    cmd_datav_create: '建立宜搭原生大屏',
+    cmd_datav_inspect: '讀取原生大屏狀態及入口',
+    cmd_datav_components: '查詢大屏元件目錄與參數定義',
+    cmd_datav_config: '讀取大屏畫布與圖層設定',
+    cmd_datav_data: '讀取大屏宜搭資料查詢與設定雜湊',
+    cmd_datav_configure_data: '更新已有大屏圖層的宜搭資料查詢',
+    cmd_datav_copy: '複製宜搭原生大屏',
+    cmd_datav_rename: '修改原生大屏名稱',
+    cmd_datav_publish: '發佈並啟用原生 DataV 大屏',
+    cmd_portal_create: '建立宜搭原生入口網站',
+    cmd_portal_catalog: '查看原生入口網站可設定的元件和主題',
+    cmd_portal_inspect: '查看原生門戶磁貼與版本',
+    cmd_portal_configure: '設定原生門戶磁貼與版面',
     cmd_generate_page: '基於高質素模板生成頁面',
     cmd_build_page: '构建宜搭兼容页面源码',
     cmd_check_page: '檢查自定義頁面規範',
@@ -820,12 +862,14 @@ module.exports = {
     dashboard_config_failed: '  ⚠️  看板模式設定失敗：{0}',
     navigation_unverified: '頁面已建立，但未能回讀確認導覽已隱藏。請使用傳回的 pageId 修復設定並回讀，不要重複建立頁面。',
     err_mode_invalid: '不支援的頁面模式：{0}',
-    mode_hint: '可用模式：default, dashboard',
+    portal_unverified: '頁面已建立，但未能確認是原生入口網站。請先讀取該頁面的設定，再重試。',
+    mode_hint: '可用模式：default、dashboard。隱藏自訂頁面導覽時，請使用 --hide-nav 或 --render-nav false。',
     page_id_label: '  pageId：   {0}',
     url_label: '  訪問網址：{0}',
     failed: '  ❌ 建立失敗：{0}'
   },
   get_schema: {
+    canvas_source_unavailable: '匯出需要頁面包含一個 YidaCodeCanvas 元件，且平台傳回可編輯的原始碼。請確認頁面類型和設計器中的原始碼。',
     title: '  openyida get-schema - 宜搭表單 Schema 取得工具',
     usage: '用法：openyida get-schema <appType> <formUuid>',
     example: '範例：openyida get-schema "APP_XXX" "FORM-XXX"',
@@ -1126,6 +1170,9 @@ module.exports = {
     err_open_url_chars: 'openUrl 路徑部分只支援 a-z A-Z 0-9 _ -，可用 / 分隔多級路徑，目前值：{0}'
   },
   update_app: {
+    settings_incomplete: '目前應用設定不完整，已停止儲存，避免預設值覆蓋現有設定。請在應用設定頁面核對。',
+    invalid_current_name: '目前應用名稱缺失或異常，已停止儲存設定。請先透過 --name 修復名稱，再更新其他設定。',
+    metadata_not_persisted: '寫入請求已被接受，但名稱、描述或原設定讀回失敗或不一致。請核對 metadataVerification，勿重複提交。',
     name_not_persisted: '應用名稱儲存後讀回不一致，尚未確認修改成功。請核對目前應用名稱，不要重複建立應用。',
     legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
     disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
@@ -2098,6 +2145,7 @@ module.exports.connector_test = {
 };
 
 module.exports.connector_contract = {
+  action_id_invalid: '新動作 {0} 的 id 須為以 operation- 開頭的非空字串；可省略 id 自動產生，不會改寫已有遠端動作 ID。',
   invalid_json: '連接器定義包含無效 JSON。',
   readback_mismatch: '連接器回讀結果與提交的定義不一致。',
   security_schemes_invalid: '連接器 securitySchemes 必須是 JSON 物件。',

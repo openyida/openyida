@@ -15,6 +15,20 @@ describe('cross-platform provider preflight', () => {
     fs.writeFileSync(target, 'fixture', { mode: 0o700 });
     return fs.realpathSync(target);
   }
+  /** Model an npm PowerShell shim by forwarding arguments and stdin to Node. */
+  function windowsNodeShim(relative, source) {
+    const cmd = file(relative);
+    const entry = path.join(path.dirname(cmd), 'cli-fixture.js');
+    fs.writeFileSync(entry, source);
+    fs.writeFileSync(cmd, '@echo off\r\nexit /b 99\r\n');
+    const quote = value => "'" + value.replace(/'/g, "''") + "'";
+    // Windows PowerShell 5.1 needs the BOM for non-ASCII script literals.
+    // The child exercises the same Node/stdin path as npm and native smoke;
+    // PowerShell cmdlet initialization is not part of the provider protocol.
+    fs.writeFileSync(cmd.replace(/\.cmd$/, '.ps1'),
+      `\ufeff& ${quote(process.execPath)} ${quote(entry)} @args\nexit $LASTEXITCODE\n`);
+    return cmd;
+  }
   const passed = jest.fn(async () => ({ status: 'passed', output: 'Logged in' }));
 
   test.each(['win32', 'darwin', 'linux'])('%s finds a CLI outside PATH in user installation directories', platform => {
@@ -207,20 +221,20 @@ describe('cross-platform provider preflight', () => {
   });
   test('Windows command shim really launches from a path with spaces and Chinese characters', async () => {
     if (process.platform !== 'win32') { return; }
-    const cmd = file('中文 folder/qodercli.cmd');
-    fs.writeFileSync(cmd, '@echo off\r\nexit /b 99\r\n');
-    fs.writeFileSync(cmd.replace(/\.cmd$/, '.ps1'), "Write-Output 'fixture-version'\nexit 0\n");
+    const cmd = windowsNodeShim("中文 user's folder/qodercli.cmd",
+      'if (!process.argv.includes("--version")) process.exit(23); console.log("fixture-version");');
     expect(await probe(cmd, ['--version'], null, { timeoutMs: 45000 })).toMatchObject({ status: 'passed', output: expect.stringContaining('fixture-version') });
   }, 60000);
 
   test('Windows npm shim preserves live stdin for ACP', async () => {
     if (process.platform !== 'win32') { return; }
-    const cmd = file('duplex/qodercli.cmd');
-    fs.writeFileSync(cmd, '@echo off\r\nexit /b 99\r\n');
-    fs.writeFileSync(cmd.replace(/\.cmd$/, '.ps1'), [
-      '$line = [Console]::In.ReadLine()',
-      'if ($null -eq $line) { exit 23 }',
-      'Write-Output \'{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1}}\'',
+    const cmd = windowsNodeShim('duplex/qodercli.cmd', [
+      'if (!process.argv.includes("--acp")) process.exit(23);',
+      'process.stdin.once("data", bytes => {',
+      'const message = JSON.parse(bytes.toString());',
+      'if (message.method !== "initialize") process.exit(24);',
+      'console.log(JSON.stringify({jsonrpc:"2.0",id:message.id,result:{protocolVersion:1}}));',
+      '});',
     ].join('\n'));
     await expect(probe(cmd, ['--acp'], 'qoder', { timeoutMs: 45000 })).resolves.toMatchObject({ status: 'passed' });
   }, 60000);

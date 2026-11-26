@@ -5,6 +5,7 @@ const http = require('http');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
+const { buildProcessAndViewJson } = require('../lib/process/services/process-compiler');
 const BIN = process.env.OPENYIDA_TEST_BIN || path.resolve(__dirname, '../bin/yida.js');
 
 test.each(['optional', 'required', 'required-check', 'only-optional', 'filtered-empty'])(
@@ -183,8 +184,11 @@ test.each(['valid', 'omitted-empty-child', 'invalid-child', 'duplicate', 'wrong-
     }
   }, 30000);
 
-test.each(['form', 'process'].flatMap(resource => ['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-id']
-  .map(scenario => [resource, scenario])))('real CLI seed route and recovery: %s %s', async (resource, scenario) => {
+const seedCases = ['form', 'process'].flatMap(resource => ['verified', 'preflight', 'check', 'readback', 'timeout', 'duplicate-id']
+  .map(scenario => [resource, scenario]));
+seedCases.push(['process', 'manager']);
+
+test.each(seedCases)('real CLI seed route and recovery: %s %s', async (resource, scenario) => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-seed-cli-'));
   const source = path.join(workspace, 'records.json');
   fs.writeFileSync(source, JSON.stringify([
@@ -193,6 +197,9 @@ test.each(['form', 'process'].flatMap(resource => ['verified', 'preflight', 'che
   ]));
   const persisted = new Map();
   let writes = 0, readbacks = 0, mismatch = scenario === 'readback';
+  const { viewJson } = buildProcessAndViewJson({ nodes: [
+    { type: 'approval', approver: scenario === 'manager' ? { type: 'directLeader' } : 'originator' },
+  ] }, 'PROC', 'FORM-TEST', 'http://127.0.0.1', 'APP_TEST');
   const server = http.createServer(async (req, res) => {
     let body = '';
     for await (const chunk of req) {body += chunk;}
@@ -203,6 +210,10 @@ test.each(['form', 'process'].flatMap(resource => ['verified', 'preflight', 'che
       result.content = [{ formUuid: 'FORM-TEST', title: 'Customers', formType: resource === 'process' ? 'process' : 'receipt' }];
     } else if (route.endsWith('getBindingByFormUuid.json')) {
       result.content = { formUuid: 'FORM-TEST', procCode: resource === 'process' ? 'PROC' : '' };
+    } else if (route.endsWith('pageProcessVersion.json')) {
+      result.content = { data: [{ id: 101, processVersion: 1, status: 'PUBLISHED' }] };
+    } else if (route.endsWith('getProcessById.json')) {
+      result.content = viewJson;
     } else if (route.endsWith('getFormSchema.json')) {
       result.content = { pages: [{ componentsTree: [
         { componentName: 'TextField', props: { fieldId: 'textField_name', label: 'Customer' } },
@@ -239,10 +250,12 @@ test.each(['form', 'process'].flatMap(resource => ['verified', 'preflight', 'che
       const start = result.stderr.indexOf('{\n  "success"');
       expect(start).toBeGreaterThanOrEqual(0);
       const payload = JSON.parse(result.stderr.slice(start));
-      expect(payload.errorCode).toBe(scenario === 'preflight' ? 'DATA_SEED_PREFLIGHT_FAILED' : 'DATA_SEED_INCOMPLETE');
+      const blocked = ['preflight', 'manager'].includes(scenario);
+      expect(payload.errorCode).toBe(scenario === 'preflight' ? 'DATA_SEED_PREFLIGHT_FAILED'
+        : scenario === 'manager' ? 'DATA_SEED_PROCESS_NOT_SELF_APPROVAL' : 'DATA_SEED_INCOMPLETE');
       expect(JSON.stringify(payload)).not.toContain('private-example');
       expect(JSON.stringify(payload)).not.toContain('test-only-access');
-      expect(payload.details).toMatchObject(scenario === 'preflight' ? { sideEffectState: 'none' }
+      expect(payload.details).toMatchObject(blocked ? { sideEffectState: 'none' }
         : { retrySafe: false, failedIndex: scenario === 'duplicate-id' ? 1 : 0 });
       if (scenario === 'duplicate-id') {expect(payload.details.causeCode).toBe('DATA_SEED_DUPLICATE_INSTANCE');}
     }

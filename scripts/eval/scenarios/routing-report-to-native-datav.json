@@ -1,0 +1,30 @@
+[
+  {
+    "id": "report-to-native-datav-existing",
+    "prompt": "把这张宜搭原生报表的指标、区域分组和每日趋势做成对应的原生 DataV 大屏，保留报表让我对照结果。",
+    "expectedSkill": "report-to-native-datav"
+  },
+  {
+    "id": "report-to-native-datav-paired",
+    "prompt": "在已有销售应用里，原生报表和原生数字大屏两个都搭建，确认分析口径一致。",
+    "expectedSkill": "report-to-native-datav"
+  },
+  {
+    "id": "report-to-native-datav-report-only",
+    "prompt": "在现有应用里创建一张销售额的原生报表。",
+    "expectedSkill": "yida-report",
+    "forbiddenDefaultSkills": ["report-to-native-datav"]
+  },
+  {
+    "id": "report-to-native-datav-screen-only",
+    "prompt": "把这个已有的原生 DataV 大屏改名为销售经营分析。",
+    "expectedSkill": "yida-datav",
+    "forbiddenDefaultSkills": ["report-to-native-datav"]
+  },
+  {
+    "id": "report-to-native-datav-generic-dashboard",
+    "prompt": "在现有应用里做一个经营分析看板，显示收入和销售趋势。",
+    "expectedSkill": "yida-dashboard",
+    "forbiddenDefaultSkills": ["report-to-native-datav"]
+  }
+]
