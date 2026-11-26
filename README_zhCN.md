@@ -363,7 +363,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 
 | 命令 | 说明 |
 |------|------|
-| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore\|bind\|start-test> <appType> [directory] [--expected-revision N] [--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--json]` | 读取和批量保存多文件代码工作区，登记固定构建并发布应用版本 |
+| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore\|bind\|start-test\|build\|save-test\|publish-tested> <appType> [directory] [--expected-revision N] [--init-if-empty\|--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--build-id ID] [--confirmation-token-file path] [--workspace] [--json]` | 读取和批量保存多文件代码工作区，登记固定构建并发布应用版本 |
 | `openyida app-settings <appType> [--section theme\|basic\|data-card\|cool-card] [--json]` | 获取主题、业务前后台、原生数据卡片和酷卡片管理入口 |
 | `openyida cool-card <list\|templates\|create\|get> <appType> [cardPageCode] [--type im\|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]` | 创建和读取宜搭原生酷卡片（交互卡片与置顶卡片） |
 | `openyida data-card <list\|create\|get\|save\|publish\|probe\|release-get\|release-save\|release-check\|release-test\|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>\|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published\|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]` | 创建、配置、发布原生数据卡片并管理投放播报 |
@@ -373,7 +373,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | 分页查询我管理的或我创建的应用 |
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | 独立本地 Agent 的方案模板查询、云端 AI 搭建入口与直接启用 |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | 查询企业效能概览和明细报表 |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | 创建宜搭应用 |
+| `openyida create-app "<name>"\|--name <name> [options] [--workspace] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | 创建宜搭应用 |
 | `openyida design-plan catalog [--compact] [--json]` | 查询规划可用的主题与页面模式 |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | 从已确认需求初始化计划草稿 |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | 按模块更新方案草稿 |

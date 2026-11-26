@@ -1,11 +1,49 @@
 ---
 name: yida-code-workspace
-description: 查询和批量保存应用级多文件代码工作区，拉取固定源码快照、登记已有构建并按原应用版本发布；用于明确的工作区目录开发，不替换历史单文件页面发布。
+description: 开发宜搭全码工作台（WORKSPACE）或维护普通应用的多文件代码工作区。支持初始化、批量保存、构建、测试和指定版本发布。
 ---
 
 # 多文件代码工作区
 
 先确认目标应用、组织与当前登录环境。需要服务端开放工作区及应用开发权限。普通单文件 Canvas 页面继续使用原发布流程。
+
+## 全码工作台（WORKSPACE）
+
+当用户明确要求全码工作台时使用以下流程。确认目标应用、组织和已登录账号。已有应用直接使用其应用 ID。仅在用户要求创建新全码应用时执行：
+
+```bash
+openyida create-app --workspace --name "我的待办工作台" --json
+```
+
+核对回执 `appTag=WORKSPACE`。正式地址为 `workspaceUrl`。用 `adminUrl` 查看代码和版本。全码应用以应用级源码和产物为入口。
+
+### 生成、预览和测试
+
+```bash
+openyida code-workspace pull APP_ID ./workspace --init-if-empty --json
+# 在本地目录生成或修改代码。
+openyida code-workspace check APP_ID ./workspace --json
+openyida code-workspace push APP_ID ./workspace --expected-revision 0 --json
+openyida code-workspace build APP_ID ./workspace --json
+openyida code-workspace start-test APP_ID --workspace --json
+openyida code-workspace save-test APP_ID ./workspace --draft-version ACTUAL_DRAFT --publish-id STABLE_PUBLISH_ID --json
+```
+
+取到 `initialized: true` 才以 revision 0 首次提交。已有代码以拉取回执记录的当前 revision 为基线，提交时省略 `--expected-revision 0`。拉取只写新目录，冲突时保留正在编辑的文件，并把当前源码取到另一个新目录后比较。整个开发过程在现有本地工程里完成，提交时批量写入一次，构建使用回读过的完整源码。
+
+在 `src/main.tsx` 默认导出 React 根组件。保留模板的工具链和锁文件。通过相对路径或 `@/` 导入工程内 JavaScript、TypeScript、JSON 和 CSS。运行时提供 React 和 ReactDOM 16.13.1。使用 `build` 返回的 `previewUrl` 打开已登记的候选产物。使用 `start-test --workspace` 的 `draftVersion` 保存测试，并在 `save-test` 回执的 `testUrl` 验证。浏览器打开正式地址时加载正式版本。
+
+“我的宜搭待办”用 `window.YidaWorkspace.getMyTodos({ page: 1, pageSize: 20, keyword })` 读取当前访问人在当前组织的待处理任务。成功回执包含 `items`（每项为 `id`、`title`、`appName`、`createdAt`）和 `total`。在组件中分别处理加载中、空列表和错误。测试时用真实环境对照本人待办。操作范围为读取任务列表。
+
+发布前向发布人展示测试版本、构建 ID 和发布标识。在管理页确认发布。若发布人通过管理页签发代发布确认，把服务器返回的确认令牌保存在源码目录外的本地临时文件中交给 Agent，然后执行：
+
+```bash
+openyida code-workspace publish-tested APP_ID --draft-version ACTUAL_DRAFT --build-id SAVED_BUILD_ID --publish-id STABLE_PUBLISH_ID --confirmation-token-file /path/to/private/confirmation.token --json
+```
+
+代发布使用 `save-test` 回读的三项标识。候选变化或令牌失效时，重新展示候选并取得确认。发布后用正式地址验证挂载。回滚在管理页选择历史正式版本，线上产物和当前源码一起恢复。之后重新把当前源码拉取到新目录继续开发。若有旧测试，重新保存测试构建。
+
+## 普通应用的代码工作区
 
 ## 页面与导航归属
 

@@ -496,7 +496,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 
 | Command | Description |
 |---------|-------------|
-| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore\|bind\|start-test> <appType> [directory] [--expected-revision N] [--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--json]` | Read and apply multi-file source workspaces; register frozen builds and publish application versions. |
+| `openyida code-workspace <limits\|current\|pull\|check\|push\|register\|publish\|restore\|bind\|start-test\|build\|save-test\|publish-tested> <appType> [directory] [--expected-revision N] [--init-if-empty\|--snapshot ID] [--build-dir directory] [--draft-version version] [--publish-id ID] [--build-id ID] [--confirmation-token-file path] [--workspace] [--json]` | Read and apply multi-file source workspaces; register frozen builds and publish application versions. |
 | `openyida app-settings <appType> [--section theme\|basic\|data-card\|cool-card] [--json]` | Read theme, frontend/backend, native data card and cool card management links |
 | `openyida cool-card <list\|templates\|create\|get> <appType> [cardPageCode] [--type im\|onebox] [--name <title>] [--page <n>] [--size <n>] [--search <text>] [--out <file>] [--json]` | Create and read native YiDA cool cards (interactive and pinned) |
 | `openyida data-card <list\|create\|get\|save\|publish\|probe\|release-get\|release-save\|release-check\|release-test\|refs> <appType> [cardCode] [--name <title>] [--description <text>] [--schema <file>\|--config <file>] [--expected-hash <hash>] [--backup <file>] [--out <file>] [--published\|--version <version>] [--page <n>] [--size <n>] [--search <text>] [--allow-send] [--json]` | Create, configure, publish and distribute native YiDA data cards |
@@ -506,7 +506,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida app-list [--type managed\|created] [--page N] [--size N]` | Page through apps I manage or created |
 | `openyida solution-template <search\|detail\|prepare\|ai-build\|enable\|status> [templateId\|requestId] [options] [--json]` | Solution templates for independent local agents: discovery, cloud AI handoff and direct enable |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | Create a Yida app |
+| `openyida create-app "<name>"\|--name <name> [options] [--workspace] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open] [--json]` | Create a Yida app |
 | `openyida design-plan catalog [--compact] [--json]` | List available planning themes and page patterns |
 | `openyida design-plan init <requirement-brief.json> [--theme-id <id>] [--output-dir <dir>] [--json]` | Initialize a plan draft from confirmed requirements |
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |

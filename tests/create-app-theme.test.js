@@ -4,7 +4,7 @@ jest.mock('../lib/core/utils', () => ({
   httpGet: jest.fn(), httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn((fn, auth) => fn(auth)),
 }));
-jest.mock('../lib/core/yida-client', () => ({ createAuthRef: jest.fn() }));
+jest.mock('../lib/core/yida-client', () => ({ createAuthRef: jest.fn(), createYidaClient: jest.fn() }));
 jest.mock('../lib/core/browser-handoff', () => ({
   parseOpenOption: args => ({ args, mode: 'never' }), withBrowserHandoff: value => value,
 }));
@@ -12,7 +12,7 @@ jest.mock('../lib/core/browser-handoff', () => ({
 const fs = require('fs');
 const { stripVTControlCharacters } = require('util');
 const { httpGet, httpPost, requestWithAutoLogin } = require('../lib/core/utils');
-const { createAuthRef } = require('../lib/core/yida-client');
+const { createAuthRef, createYidaClient } = require('../lib/core/yida-client');
 const { run } = require('../lib/app/create-app');
 const { resolveAppThemeState } = require('../lib/app/app-theme-state');
 const { t } = require('../lib/core/i18n');
@@ -169,4 +169,26 @@ test('immediate Fast creation accepts --json and reaches the platform without a 
   const outputs = console.log.mock.calls.filter(([value]) => typeof value === 'string' && value.startsWith('{'));
   expect(outputs).toHaveLength(1);
   expect(JSON.parse(outputs[0][0])).toMatchObject({ success: true, appType: 'APP_TEST' });
+});
+
+test('workspace creation preserves the Builder AI inputs and verifies the WORKSPACE tag', async () => {
+  const postFormOnce = jest.fn(async (_url, payload) => {
+    expect(payload(auth)).toMatchObject({ fromBuilderAi: 'y', createWithModernTheme: 'y' });
+    return { success: true, content: app.appType };
+  });
+  createYidaClient.mockReturnValue({ postFormOnce });
+  httpGet.mockResolvedValue({ success: true, content: { ...app, appTag: 'WORKSPACE', config: {} } });
+  await run(['--workspace', '--name', 'My workbench', '--json']);
+  expect(postFormOnce).toHaveBeenCalledTimes(1);
+  expect(postFormOnce).toHaveBeenCalledWith('/query/app/registerFullCodeApp.json', expect.any(Function));
+  const result = JSON.parse(console.log.mock.calls[0][0]);
+  expect(result).toMatchObject({ success: true, appTag: 'WORKSPACE', appType: app.appType,
+    workspaceUrl: 'https://example.com/APP_TEST/workspace', adminUrl: 'https://example.com/APP_TEST/admin' });
+  expect(result).not.toHaveProperty('workbenchUrl');
+
+  httpGet.mockResolvedValue({ success: true, content: { ...app, appTag: 'NORMAL' } });
+  await expect(run(['--workspace', '--name', 'Other workbench', '--json'])).rejects.toMatchObject({
+    code: 'APP_CREATED_WORKSPACE_UNVERIFIED', details: { appType: app.appType, appCreated: true, retryCreate: false },
+  });
+  expect(postFormOnce).toHaveBeenCalledTimes(2);
 });

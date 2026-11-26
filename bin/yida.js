@@ -504,6 +504,7 @@ function printCommandUsage(...lines) {
 }
 
 const MANIFEST_HELP_PATHS = Object.freeze({
+  'code-workspace': ['code-workspace'],
   'get-schema': ['get-schema'],
   'query-data': ['data'],
   'data-manage': ['data'],

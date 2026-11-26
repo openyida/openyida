@@ -3,7 +3,7 @@ name: openyida
 description: >
   宜搭应用开发总入口技能。通过具备代码生成能力的智能体（千问办公/Claude/Open Code 等）+ AI 宜搭，实现一句话搭建或修改完整应用。
   当用户提到“宜搭”、“yida”、“AI 宜搭”、“创建应用”、“创建表单”、“发布页面”、“自定义页面模板”、“搭建”、“系统”等关键词时，使用此技能；只是讨论通用前端/后端代码、非宜搭平台产品、或只解释概念而不操作宜搭资源时不触发。
-  重要路由规则：完整应用/系统/平台的从零搭建、已有 app 但没有任何页面、或已有 app/page 需要补成完整业务系统时，必须先加载 yida-app 子技能作为编排入口。已有资源的单点改字段、改页面、发布、权限或数据任务按对应子技能路由。
+  重要路由规则：明确请求全码工作台（WORKSPACE）时先加载 yida-code-workspace。普通完整应用/系统/平台的从零搭建、已有 app 但没有任何页面、或已有 app/page 需要补成完整业务系统时，必须先加载 yida-app 子技能作为编排入口。已有资源的单点改字段、改页面、发布、权限或数据任务按对应子技能路由。
 ---
 
 # 宜搭应用开发指南
@@ -147,6 +147,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 | 判定 | 用户诉求信号 | 下一步 |
 | --- | --- | --- |
+| 全码工作台 | 用户明确指定全码工作台或 WORKSPACE 应用 | 加载 `yida-code-workspace` |
 | 完整搭建 / 补齐 | 创建/搭建/做一个 + 应用/系统/管理系统；已有 app 没有任何页面；或已有 app/page 需要补成完整系统 | 加载 `yida-app` |
 | 单一 / 增量任务 | 对已有应用/表单/页面做单点操作：加字段、查改数据、配公式、建报表、改权限、发布、美化等 | 从下方技能路由表选 1 个子技能 |
 
@@ -184,7 +185,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
 
-明确操作应用级多文件代码工作区时，通过 use_skill 加载 `yida-code-workspace`：一轮修改批量 push；本地单文件保存不写服务端。普通单文件页面继续原 Canvas 发布流程。
+明确创建或开发宜搭全码工作台（WORKSPACE）时，通过 use_skill 加载 `yida-code-workspace`，按应用级源码流程初始化、构建并保存测试。明确操作普通应用的多文件代码工作区时也加载该技能，普通单文件页面继续原 Canvas 发布流程。
 
 ### 高频分歧
 

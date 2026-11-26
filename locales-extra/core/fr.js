@@ -844,10 +844,11 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    workspace_unverified: 'L’application a été créée. Son type WORKSPACE reste à vérifier. Consultez l’identifiant renvoyé avant de créer une autre application.',
     modern_theme_unverified: "L’application a été créée, mais sa configuration de thème moderne n’a pas pu être vérifiée. Examinez l’ID renvoyé ; ne recréez pas l’application et ne passez pas à un ancien thème.",
     update_only_option: '{0} sert uniquement à la mise à jour. Créez l’application puis utilisez openyida update-app <appType>.',
     title: "  create-app - Outil de création d'application Yida",
-    usage: 'Utilisation : openyida create-app "<nom app>" [--json] ou openyida create-app --name "<nom app>" [--desc "..."] [--json]',
+    usage: 'Utilisation : openyida create-app "<nom app>" [--workspace] [--json] ou openyida create-app --name "<nom app>" [--desc "..."] [--workspace] [--json]',
     example: 'Exemple : openyida create-app --name "Mon App" --desc "Description app"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

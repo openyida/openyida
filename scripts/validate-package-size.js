@@ -109,7 +109,8 @@ const path = require('path');
 // DataV component/interaction and application-theme guidance: Node 20.18.1
 // measures 2,852,227 compressed bytes; retain the next 16 KiB boundary.
 // Process sample guards and sandbox refresh together measure 2,867,335 packed bytes on Node 23.
-const MAX_TARBALL_BYTES = 2816 * 1024;
+// WORKSPACE compiler and starter measure about 2,889,000 compressed bytes on Node 20.
+const MAX_TARBALL_BYTES = 2832 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -281,7 +282,8 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Advance only unpacked and entry ratchets; compressed and single-file caps stay fixed.
 // Two workspace navigation/layout samples plus upload reconciliation: measured
 // 10,502,808 bytes / 832 files on Node 26; retain the next 16 KiB boundary.
-const MAX_UNPACKED_BYTES = 10272 * 1024;
+// The WORKSPACE flow and starter measure about 10,529,000 unpacked bytes on Node 20.
+const MAX_UNPACKED_BYTES = 10288 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -334,10 +336,14 @@ const MAX_UNPACKED_BYTES = 10272 * 1024;
 // The report-to-native-datav orchestration skill adds one packaged entry.
 // Workspace V2 page binding adds one schema transformation module. CI measured
 // 830 shipped files; keep compressed, unpacked and per-file byte budgets unchanged.
-const MAX_ENTRY_COUNT = 832;
+// WORKSPACE adds the compiler, template reader and a pinned starter JSON.
+const MAX_ENTRY_COUNT = 835;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/code-workspace/workspace-app.js',
+  'lib/code-workspace/workspace-template.js',
+  'lib/code-workspace/templates/yida-workspace-v1.json',
   'yida-skills/skills/report-to-native-datav/SKILL.md',
   'lib/app/datav.js',
   'lib/app/datav-designer.js',

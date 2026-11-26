@@ -7,13 +7,13 @@
       "name": "yida-code-workspace",
       "path": "skills/yida-code-workspace/SKILL.md",
       "display_name": "多文件代码工作区",
-      "description": "拉取固定源码快照、批量应用一轮修改，登记已有构建并按应用版本发布。",
+      "description": "创建或开发全码工作台，以及维护普通应用的多文件代码工作区。支持初始化、批量保存、构建、测试和指定版本发布。",
       "category": "yida-skills/page",
-      "tags": ["多文件", "代码目录", "工作区"],
+      "tags": ["多文件", "代码目录", "全码应用", "全码工作台", "工作区"],
       "aliases": ["code-workspace"],
-      "positive_signals": ["多文件代码工作区", "批量保存代码目录"],
+      "positive_signals": ["全码工作台", "创建 WORKSPACE 应用", "多文件代码工作区", "批量保存代码目录"],
       "negative_signals": ["单文件Canvas发布"],
-      "command_ids": ["code-workspace"],
+      "command_ids": ["code-workspace", "create-app"],
       "requires_login": true
     },
     {

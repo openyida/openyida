@@ -844,10 +844,11 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    workspace_unverified: 'ऐप बन गया है, लेकिन उसके WORKSPACE प्रकार की पुष्टि नहीं हो सकी। दोबारा बनाने से पहले मिली हुई ऐप आईडी की जाँच करें।',
     modern_theme_unverified: "ऐप बन गया है, लेकिन आधुनिक थीम की सेटिंग सत्यापित नहीं हो सकी। लौटाई गई ऐप आईडी जाँचें; ऐप दोबारा न बनाएँ और पुरानी थीम पर न जाएँ।",
     update_only_option: '{0} केवल अपडेट के लिए है। पहले ऐप बनाएँ, फिर openyida update-app <appType> का उपयोग करें।',
     title: '  create-app - Yida ऐप निर्माण टूल',
-    usage: 'उपयोग: openyida create-app "<ऐप नाम>" [--json] या openyida create-app --name "<ऐप नाम>" [--desc "..."] [--json]',
+    usage: 'उपयोग: openyida create-app "<ऐप नाम>" [--workspace] [--json] या openyida create-app --name "<ऐप नाम>" [--desc "..."] [--workspace] [--json]',
     example: 'उदाहरण: openyida create-app --name "मेरा ऐप" --desc "ऐप विवरण"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +

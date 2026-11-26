@@ -844,10 +844,11 @@ module.exports = {
     unknown: 'unknown'
   },
   create_app: {
+    workspace_unverified: 'تم إنشاء التطبيق، لكن تعذّر التحقق من نوع WORKSPACE. تحقّق من معرّف التطبيق المعاد قبل إعادة الإنشاء.',
     modern_theme_unverified: "تم إنشاء التطبيق، لكن تعذر التحقق من إعدادات السمة الحديثة. افحص معرّف التطبيق الذي تم إرجاعه، ولا تعِد إنشاء التطبيق أو ترجع إلى السمة القديمة.",
     update_only_option: 'الخيار {0} مخصص لتحديث التطبيق. أنشئ التطبيق أولاً ثم استخدم openyida update-app <appType>.',
     title: '  create-app - أداة إنشاء تطبيق Yida',
-    usage: 'الاستخدام: openyida create-app "<اسم التطبيق>" [--json] أو openyida create-app --name "<اسم التطبيق>" [--desc "..."] [--json]',
+    usage: 'الاستخدام: openyida create-app "<اسم التطبيق>" [--workspace] [--json] أو openyida create-app --name "<اسم التطبيق>" [--desc "..."] [--workspace] [--json]',
     example: 'مثال: openyida create-app --name "تطبيقي" --desc "وصف التطبيق"',
     available_icons: '\nAvailable icons:',
     icons_list: '  xian-xinwen, xian-zhengfu, xian-yingyong, xian-xueshimao, xian-qiye,\n' +
