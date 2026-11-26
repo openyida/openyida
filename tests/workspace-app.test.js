@@ -178,3 +178,134 @@ test('confirmed publication is bound to the exact active test and never writes a
   await expect(execute(options, api)).rejects.toMatchObject({ code: 'CODE_WORKSPACE_READBACK_FAILED' });
   expect(api.version.mock.calls).toEqual([['getWorkspaceDraft']]);
 });
+
+function syncOptions() {
+  return parseArgs(['sync-test', appType, folder, '--json']);
+}
+
+test('an empty WORKSPACE saves, compiles, uploads and binds once, and every completed round returns one stable URL', async () => {
+  saveFixtureProject();
+  fs.rmSync(path.join(folder, '.openyida'), { recursive: true });
+  const limits = { maxSourceFileCount: 100, maxSourceSnapshotBytes: 65536 };
+  let head = null;
+  let registered = null;
+  let test = null;
+  const api = {
+    app: jest.fn(getAppTag), baseUrl: 'https://example.test',
+    get: jest.fn(async action => {
+      if (action === 'limits') { return limits; }
+      if (action === 'currentBuild') { return registered?.sourceSnapshotId === head?.sourceSnapshotId ? registered : null; }
+      return head;
+    }),
+    multipart: jest.fn(async (action, fields, parts) => {
+      if (action === 'registerBuild') {
+        const manifest = JSON.parse(parts.runtimeManifest.content);
+        expect(manifest.sourceSnapshotId).toBe(head.sourceSnapshotId);
+        expect(parts.files.map(file => file.fileName).sort()).toEqual(head.revision === 1 ? ['main.css', 'main.js'] : ['main.js']);
+        registered = { ...head, buildId: manifest.buildId };
+        return registered;
+      }
+      const revision = (head?.revision ?? 0) + 1;
+      expect(fields.expectedRevision).toBe(revision - 1);
+      expect(action).toBe(revision === 1 ? 'saveDraft' : 'savePatch');
+      expect(parts.files).toHaveLength(revision === 1 ? 5 : 1);
+      head = { ...localBase, revision, sourceSnapshotId: String(revision).repeat(16), files: describe(collectFiles(folder)) };
+      return head;
+    }),
+    version: jest.fn(async (action, params) => {
+      if (action === 'getWorkspaceDraft') {
+        if (test) { return test; }
+        throw Object.assign(new Error('Test not saved'), { code: 'CODE_WORKSPACE_TEST_BUILD_REQUIRED' });
+      }
+      if (action === 'createTestVersion') { return '/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=2.0.0'; }
+      if (action !== 'saveWorkspaceDraft') { throw new Error(`Unexpected version operation ${action}`); }
+      expect(params.sourceSnapshotId).toBe(registered.sourceSnapshotId);
+      expect(params.codeWorkspaceBuildId).toBe(registered.buildId);
+      test = { ...params, workspaceId: localBase.workspaceId, codeWorkspacePublishId: 'receipt-' + head.revision };
+      return test;
+    }),
+  };
+  const testUrl = 'https://example.test/APP_WORKSPACE/workspace-test';
+  const first = await execute(syncOptions(), api);
+  expect(first).toMatchObject({ sourceChanged: true, buildUploaded: true, testBindingUpdated: true,
+    testReadbackVerified: true, published: false, revision: 1, testUrl });
+  expect(api.multipart.mock.calls.map(([action]) => action)).toEqual(['saveDraft', 'registerBuild']);
+
+  api.multipart.mockClear();
+  api.version.mockClear();
+  await expect(execute(syncOptions(), api)).resolves.toMatchObject({ sourceChanged: false, testBindingUpdated: false,
+    buildUploaded: false, codeWorkspaceBuildId: first.codeWorkspaceBuildId, testUrl });
+  expect(api.multipart).not.toHaveBeenCalled();
+  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft']]);
+
+  fs.writeFileSync(path.join(folder, 'src/main.tsx'), "export default function App() { return 'revised'; }\n");
+  const second = await execute(syncOptions(), api);
+  expect(second).toMatchObject({ sourceChanged: true, buildUploaded: true, testBindingUpdated: true, revision: 2, testUrl,
+    codeWorkspaceDraftVersion: first.codeWorkspaceDraftVersion });
+  expect(second.codeWorkspaceBuildId).not.toBe(first.codeWorkspaceBuildId);
+  expect(api.multipart.mock.calls.map(([action]) => action)).toEqual(['savePatch', 'registerBuild']);
+  expect(api.version.mock.calls.map(([action]) => action)).toEqual(['getWorkspaceDraft', 'getWorkspaceDraft', 'saveWorkspaceDraft', 'getWorkspaceDraft']);
+}, 15000);
+
+test('an already uploaded build resumes binding with its exact identity even when the bind response is lost', async () => {
+  saveFixtureProject();
+  const head = { ...localBase, files: describe(collectFiles(folder)) };
+  const previous = { ...testSelection, sourceSnapshotId: 'b'.repeat(16), codeWorkspaceBuildId: 'e'.repeat(32) };
+  const lostResponse = new Error('connection closed after the bind');
+  const api = {
+    app: jest.fn(getAppTag), baseUrl: 'https://example.test', multipart: jest.fn(),
+    get: jest.fn(async action => {
+      if (action === 'limits') { return { maxSourceFileCount: 100, maxSourceSnapshotBytes: 65536 }; }
+      if (action === 'currentBuild') { return { sourceSnapshotId: head.sourceSnapshotId, buildId: testSelection.codeWorkspaceBuildId }; }
+      return head;
+    }),
+    version: jest.fn().mockResolvedValueOnce(previous).mockRejectedValueOnce(lostResponse).mockResolvedValueOnce(previous),
+  };
+  await expect(execute(syncOptions(), api)).rejects.toBe(lostResponse);
+  api.version.mockReset().mockResolvedValueOnce(previous).mockRejectedValueOnce(lostResponse).mockResolvedValueOnce(testSelection);
+  await expect(execute(syncOptions(), api)).resolves.toMatchObject({ ...testSelection, sourceChanged: false,
+    buildUploaded: false, testBindingUpdated: true, published: false });
+  expect(api.multipart).not.toHaveBeenCalled();
+  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft'], ['saveWorkspaceDraft', {
+    sourceSnapshotId: head.sourceSnapshotId, codeWorkspaceDraftVersion: testSelection.codeWorkspaceDraftVersion,
+    codeWorkspaceBuildId: testSelection.codeWorkspaceBuildId,
+  }], ['getWorkspaceDraft']]);
+});
+
+test('a compile failure leaves the previous successful test candidate available', async () => {
+  saveFixtureProject();
+  const sourcePath = path.join(folder, 'src/main.tsx');
+  fs.writeFileSync(sourcePath, 'export const MissingDefault = () => null;\n');
+  const head = { ...localBase, files: describe(collectFiles(folder)) };
+  writeState(folder, { ...head, appType });
+  const api = {
+    app: jest.fn(getAppTag), baseUrl: 'https://example.test', multipart: jest.fn(),
+    get: jest.fn(async action => {
+      if (action === 'limits') { return { maxSourceFileCount: 100, maxSourceSnapshotBytes: 65536 }; }
+      return action === 'currentBuild' ? null : head;
+    }),
+    version: jest.fn().mockResolvedValue({ ...testSelection, sourceSnapshotId: 'b'.repeat(16) }),
+  };
+  await expect(execute(syncOptions(), api)).rejects.toThrow();
+  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft']]);
+  expect(api.multipart).not.toHaveBeenCalled();
+}, 15000);
+
+test.each([false, true])('already published sources avoid opening an empty test version, including rollback=%s', async restored => {
+  saveFixtureProject();
+  const head = { ...localBase, files: describe(collectFiles(folder)) };
+  if (restored) { head.restoredFromSnapshotId = 'e'.repeat(16); }
+  const online = { status: 'ONLINE', version: '1.2.0', sourceSnapshotId: head.restoredFromSnapshotId ?? head.sourceSnapshotId,
+    codeWorkspaceBuildId: testSelection.codeWorkspaceBuildId };
+  const api = {
+    app: jest.fn(getAppTag), baseUrl: 'https://example.test', multipart: jest.fn(),
+    get: jest.fn().mockResolvedValueOnce({ maxSourceFileCount: 100, maxSourceSnapshotBytes: 65536 }).mockResolvedValueOnce(head),
+    version: jest.fn().mockRejectedValueOnce(Object.assign(new Error('Test not saved'), { code: 'CODE_WORKSPACE_TEST_BUILD_REQUIRED' }))
+      .mockResolvedValueOnce([online]),
+  };
+  await expect(execute(syncOptions(), api)).resolves.toMatchObject({ appVersion: online.version, testSource: 'online',
+    sourceChanged: false, buildUploaded: false, testBindingUpdated: false, published: false,
+    testUrl: 'https://example.test/APP_WORKSPACE/workspace-test' });
+  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft'], ['listVersions']]);
+  expect(api.multipart).not.toHaveBeenCalled();
+});

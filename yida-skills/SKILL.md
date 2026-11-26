@@ -185,7 +185,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
 
-明确创建或开发宜搭全码工作台（WORKSPACE）时，通过 use_skill 加载 `yida-code-workspace`，按应用级源码流程初始化、构建并保存测试。明确操作普通应用的多文件代码工作区时也加载该技能，普通单文件页面继续原 Canvas 发布流程。
+明确创建或开发宜搭全码工作台（WORKSPACE）时，通过 use_skill 加载 `yida-code-workspace`，按应用级源码流程初始化，每轮用 `sync-test` 更新固定测试地址。明确操作普通应用的多文件代码工作区时也加载该技能，普通单文件页面继续原 Canvas 发布流程。
 
 ### 高频分歧
 
