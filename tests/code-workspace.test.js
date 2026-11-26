@@ -181,12 +181,17 @@ test('register verifies frozen output, then publish explicitly uses the register
     fs.writeFileSync(path.join(buildRoot, 'files/app.js'), bytes);
     fs.writeFileSync(path.join(buildRoot, 'runtime.manifest.json'), JSON.stringify(manifest));
     const build = { ...identity, buildId };
-    const api = { multipart: jest.fn().mockResolvedValue(build), version: jest.fn().mockResolvedValue({ success: true }) };
+    const selected = { workspaceId: identity.workspaceId, sourceSnapshotId: identity.sourceSnapshotId, codeWorkspaceBuildId: buildId, codeWorkspacePublishId: 'P1', codeWorkspaceDraftVersion: '1.2' };
+    const api = { enterTest: jest.fn(), multipart: jest.fn().mockResolvedValue(build), version: jest.fn(async action => action === 'getWorkspaceDraft' ? selected : { success: true }) };
     await execute({ action: 'register', appType: 'APP_A', directory: root, 'build-dir': buildRoot }, api);
     expect(api.multipart).toHaveBeenCalledWith('registerBuild', expect.objectContaining({ uploadAttempt: buildId }), expect.any(Object));
     expect(api.version).not.toHaveBeenCalled();
     const result = await execute({ action: 'publish', appType: 'APP_A', directory: root, 'draft-version': '1.2', 'publish-id': 'P1' }, api);
+    expect(api.enterTest).toHaveBeenCalledTimes(1);
     expect(api.version.mock.calls).toEqual([
+      ['startTest'],
+      ['saveWorkspaceDraft', { codeWorkspaceBuildId: buildId, sourceSnapshotId: identity.sourceSnapshotId, codeWorkspacePublishId: 'P1', codeWorkspaceDraftVersion: '1.2' }],
+      ['getWorkspaceDraft'],
       ['publishDraft', { codeWorkspaceBuildId: buildId, codeWorkspacePublishId: 'P1', codeWorkspaceDraftVersion: '1.2' }],
       ['getPublishStatus'],
     ]);
@@ -200,4 +205,14 @@ test('pull never installs repository metadata supplied by a remote snapshot', as
   const api = { get: jest.fn().mockResolvedValue({ ...identity, files: { '.git/hooks/post-checkout': {} } }), download: jest.fn() };
   await expect(execute({ action: 'pull', appType: 'APP_A', directory: path.join(root, 'out') }, api)).rejects.toThrow('reserved');
   expect(api.download).not.toHaveBeenCalled();
+});
+
+
+test('publish stops before ONLINE promotion when the test build readback differs', async () => {
+  project();
+  writeState(root, { ...identity, appType: 'APP_A', files: describe(collectFiles(root)), build: { ...identity, buildId: 'b'.repeat(32) } });
+  const api = { enterTest: jest.fn(), version: jest.fn(async () => ({ workspaceId: 'foreign' })) };
+  await expect(execute({ action: 'publish', appType: 'APP_A', directory: root, 'draft-version': '1.2', 'publish-id': 'P1' }, api))
+    .rejects.toThrow('readback mismatch');
+  expect(api.version.mock.calls.map(call => call[0])).toEqual(['startTest', 'saveWorkspaceDraft', 'getWorkspaceDraft']);
 });

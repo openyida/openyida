@@ -63,9 +63,9 @@ openyida code-workspace start-test APP_ID --json
 openyida code-workspace bind APP_ID ./new-workspace --form-uuid FORM_ID --entry home --canvas-node-id NODE_ID --json
 ```
 
-start-test 复用已有活跃测试版本，缺失时创建，并仅把当前登录用户加入测试参与者，回读测试状态，不新增其他参与者。仅对刚创建的空自定义页面，可用 `--create-canvas` 代替节点选择。bind 保留原 Schema、数据源及并发版本，删除所选 Canvas 的 code/runtimeCode，保存后回读绑定；不登记构建、不发布应用。bind 先确认服务端 inTestEnvironment，或使用 getPreviewUrl 下发的有效测试上下文；均不可用时停止写入并报告 `CODE_WORKSPACE_TEST_CONTEXT_UNAVAILABLE`，不降级改写线上页面。测试上下文只保留在命令进程内，不保存 Cookie 登录态。
+先在应用设置中开启测试环境；start-test 不代替用户修改该开关。start-test 复用已有活跃测试版本，缺失时创建，并仅把当前登录用户加入测试参与者，回读测试状态，不新增其他参与者。仅对刚创建的空自定义页面，可用 `--create-canvas` 代替节点选择。bind 保留原 Schema、数据源及并发版本，删除所选 Canvas 的 code/runtimeCode，保存后回读绑定；不登记构建、不发布应用。bind 先确认服务端 inTestEnvironment，或使用 getPreviewUrl 下发的有效测试上下文；均不可用时停止写入并报告 `CODE_WORKSPACE_TEST_CONTEXT_UNAVAILABLE`，不降级改写线上页面。测试上下文只保留在命令进程内，不保存 Cookie 登录态。
 
-新建一轮测试版本时，其资源清单最初为空。发布新工作区构建前，在该测试版本中对所有要保留的工作区页面执行 bind，沿用真实 Canvas 节点和原入口；即使只改公共代码、Schema 入口没有变化，也要将这些页面登记进本轮测试资源。不能把上一 ONLINE 的绑定回读当成本轮 DRAFT 已具备资源。已有页面不使用 `--create-canvas`。
+新建一轮测试版本时，其资源清单最初为空。publish 沿用现有 startTest 接口，收集尚未修改的线上资源引用到 DRAFT，保留本轮已有测试修改；不重写原页面 Schema。新建页面或变更入口绑定时才执行 bind，已有页面不使用 `--create-canvas`。
 
 ```bash
 openyida code-workspace register APP_ID ./new-workspace --build-dir ./frozen-output --json
@@ -74,7 +74,7 @@ openyida code-workspace publish APP_ID ./new-workspace --draft-version ACTUAL_DR
 
 register 接收与冻结配方一致的外部构建器输出：runtime.manifest.json 及 files/ 下的运行文件。CLI 校验工作区、源码、ABI 和文件摘要后上传，不内置多文件编译器，不保证任意外部产物能由 FC 重建。缺少兼容构建器时止于源码保存。
 
-publish 使用本地已登记且匹配源码的 buildId。保存、登记、正式发布分别报告；返回发布状态不代表真实浏览器运行已验收。超时或结果不明先查原应用发布状态，重试保留原 publish-id，不自动另发一版。
+publish 使用本地已登记且匹配源码的 buildId，先取得测试版本身份，将固定构建保存到指定 DRAFT 并回读，再通过现有版本接口发布同一构建；不会在发布时重新编译，也不批量改写页面 Schema。测试环境关闭、DRAFT 已变化或回读不一致时停止发布。保存、登记、正式发布分别报告；返回发布状态不代表真实浏览器运行已验收。超时或结果不明先查原应用发布状态，重试保留原 publish-id，不自动另发一版。
 
 ## 恢复源码编辑头
 
