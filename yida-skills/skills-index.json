@@ -4,6 +4,19 @@
   "entry": "openyida",
   "skills": [
     {
+      "name": "yida-code-workspace",
+      "path": "skills/yida-code-workspace/SKILL.md",
+      "display_name": "多文件代码工作区",
+      "description": "拉取固定源码快照、批量应用一轮修改，登记已有构建并按应用版本发布。",
+      "category": "yida-skills/page",
+      "tags": ["多文件", "代码目录", "工作区"],
+      "aliases": ["code-workspace"],
+      "positive_signals": ["多文件代码工作区", "批量保存代码目录"],
+      "negative_signals": ["单文件Canvas发布"],
+      "command_ids": ["code-workspace"],
+      "requires_login": true
+    },
+    {
       "name": "yida-print-template",
       "path": "skills/yida-print-template/SKILL.md",
       "display_name": "原生打印模板",

@@ -916,6 +916,12 @@ async function dispatchCommand() {
       break;
     }
 
+    case 'code-workspace': {
+      const { run } = require('../lib/code-workspace');
+      await run(args);
+      break;
+    }
+
     case 'get-schema': {
       const { run } = require('../lib/app/get-schema');
       await run(args);

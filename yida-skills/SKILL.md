@@ -184,6 +184,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
 
+明确操作应用级多文件代码工作区时，通过 use_skill 加载 `yida-code-workspace`：一轮修改批量 push；本地单文件保存不写服务端。普通单文件页面继续原 Canvas 发布流程。
+
 ### 高频分歧
 
 | 用户意图 | 选哪个 |
