@@ -26,9 +26,8 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 
 ## 本地使用问题与贡献反馈
 
-用户反馈 OpenYida 使用问题或体验建议、想贡献改进、不会提 Issue/PR，先加载 `yida-feedback`；没有 GitHub 账号或源码也可先整理材料。
-它负责基于当前证据分析根因、生成脱敏本地材料，并按用户授权提交 Issue 或个人 Fork PR。无账号先引导注册，实在不行提示“反馈到AI开发者群”。
-自动发现重复失败只建议并整理本地草稿，不自动公开提交。网页关联本地 Agent 异常先按下节诊断，需要反馈时再进入此技能。普通宜搭产品 VOC 清单仍用 `yida-voc`。
+OpenYida 使用问题、体验建议和修复贡献由 `yida-feedback` 处理。普通反馈默认提交宜搭，无需 GitHub 账号或源码。Agent 整理现场，客户在对话中确认后提交。仅在用户明确选择公开贡献时走 GitHub Issue 或个人 Fork PR。
+自动发现重复失败只建议并整理本地草稿。网页关联本地 Agent 异常先按下节诊断，需要反馈时再进入此技能。普通宜搭产品 VOC 清单仍用 `yida-voc`。
 
 ## 本地 Agent 故障分流
 
@@ -181,7 +180,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | `yida-skills/analytics` | 用户显式指定宜搭原生数据卡片（含其投放播报）；聚合表、虚拟视图、报表、统计、图表、Recharts、ECharts、经营分析看板、驾驶舱、大屏 | `yida-data-card`、`yida-aggregate-table`、`yida-report`、`yida-rechart`、`yida-chart`、`yida-dashboard`、`yida-datav`（仅显式原生大屏）、`report-to-native-datav`（报表与原生大屏等价搭建） |
 | `yida-skills/integration` | 用户明确指定宜搭平台插件或原生酷卡片；连接器、钉钉开放平台、外部 API、执行动作、设计器数据源、集成自动化、逻辑流 | `yida-plugin-lifecycle`、`yida-plugin-frontend-deploy`、`yida-cool-card`、`yida-integration`、`yida-flow-node-config`、`yida-dingtalk-openapi`、`yida-connector`、`yida-connector-safe-actions`、`yida-data-source-connectors` |
 | `yida-skills/access` | 平台/应用/表单/页面权限、公开访问、分享 | `yida-corp-manager`、`yida-app-permission`、`yida-form-permission`、`yida-page-config` |
-| `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 本地故障、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
+| `yida-skills/ops` | Sequence、主键冲突、VOC、OpenYida 宜搭反馈、Issue/Fork PR | `yida-db-seq-fix`、`yida-voc`、`yida-feedback` |
 | `yida-skills/agent` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | `yida-export-conversation`、`yida-document-markdown`、`yida-tingji`、`yida-flash-note-to-prd` |
 
 ### 高频分歧
@@ -192,7 +191,7 @@ Fast / Plan 选定的主题和主色属于整个应用：导航、原生页、�
 | 独立本地 Agent 中明确要求查询、AI 搭或启用方案模板 | `yida-solution-template`；先查询并选定模板，定制提供云端 AI 入口，原样使用走启用摘要与直接启用 |
 | 云端平台已注入模板参考 PRD | 保留原生模板任务，在当前绑定应用中继续搭建；不加载 `yida-solution-template` 或调用其 CLI |
 | 已有 app 但没有任何页面，需要补成完整系统 | `yida-app`；属于首次搭建，同样先询问搭建方式，复用已有 `appType` 补齐资源 |
-| OpenYida 使用问题、体验建议、希望贡献改进或不会提 Issue/PR | `yida-feedback`；先整理脱敏材料，成功提交 Issue 后可选邀请 PR，贡献代码使用个人 Fork |
+| OpenYida 使用问题、体验建议、希望贡献改进或不会提 Issue/PR | `yida-feedback`；普通反馈默认提交宜搭；用户明确选择 GitHub 后再准备 Issue/PR |
 | 读取钉钉在线文档正文 | `yida-document-markdown`，使用登录态接口获取 Markdown |
 | 按 taskUuid 读取钉钉听记 | `yida-tingji`，将听记任务 ID 原样传入命令 |
 | 将钉钉开放平台官方 API 接入宜搭或 Canvas | `yida-dingtalk-openapi`；密钥不进聊天，账号由用户在宜搭或本机 TTY 配置 |

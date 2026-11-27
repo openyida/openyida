@@ -3,13 +3,10 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { EventEmitter } = require('node:events');
 const { gzipSync } = require('node:zlib');
-const { createInterface } = require('node:readline/promises');
 const { run } = require('../lib/feedback/feedback');
 const { loadTokenSession } = require('../lib/auth/token-store');
 
-jest.mock('node:readline/promises', () => ({ createInterface: jest.fn() }));
 jest.mock('../lib/auth/token-store', () => ({
   ...jest.requireActual('../lib/auth/token-store'),
   loadTokenSession: jest.fn(),
@@ -161,29 +158,18 @@ describe('feedback evidence review', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  test.each([false, true])('wizard shows the selected file before confirming (submit: %s)', async confirm => {
-    const ttyInput = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
-    const ttyOutput = Object.getOwnPropertyDescriptor(process.stderr, 'isTTY');
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
-    Object.defineProperty(process.stderr, 'isTTY', { value: true, configurable: true });
-    const terminal = jest.spyOn(process.stderr, 'write').mockReturnValue(true);
+  test('requires a feedback file and request ID even on a terminal', async () => {
+    const inputTTY = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
+    const outputTTY = Object.getOwnPropertyDescriptor(process.stderr, 'isTTY');
+    Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: true });
+    Object.defineProperty(process.stderr, 'isTTY', { configurable: true, value: true });
     try {
-      const reader = new EventEmitter();
-      const answers = ['2', 'Publish failed', 'The spinner stays visible', 'It should open',
-        '', '', '', screenshot, '', '', 'n', confirm ? 'y' : ''];
-      reader.question = jest.fn(async () => answers.shift());
-      reader.close = () => reader.emit('close');
-      createInterface.mockReturnValue(reader);
-      if (confirm) {
-        reply(201, { status: 'submitted', feedbackId: FEEDBACK_ID });
-      }
-      await run(['submit']);
-      expect(answers).toHaveLength(0);
-      expect(terminal.mock.calls.map(call => call[0]).join('')).toContain('a screenshot.png');
-      expect(fetch).toHaveBeenCalledTimes(confirm ? 1 : 0);
+      await expect(run(['submit'])).rejects.toMatchObject({ code: 'FEEDBACK_USAGE' });
+      await expect(run(['submit', '--input', input, '--preview'])).rejects.toMatchObject({ code: 'FEEDBACK_USAGE' });
+      expect(fetch).not.toHaveBeenCalled();
     } finally {
-      if (ttyInput) {Object.defineProperty(process.stdin, 'isTTY', ttyInput);} else {delete process.stdin.isTTY;}
-      if (ttyOutput) {Object.defineProperty(process.stderr, 'isTTY', ttyOutput);} else {delete process.stderr.isTTY;}
+      if (inputTTY) {Object.defineProperty(process.stdin, 'isTTY', inputTTY);} else {delete process.stdin.isTTY;}
+      if (outputTTY) {Object.defineProperty(process.stderr, 'isTTY', outputTTY);} else {delete process.stderr.isTTY;}
     }
   });
 

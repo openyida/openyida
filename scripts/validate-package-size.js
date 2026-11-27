@@ -276,7 +276,8 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
 // Process sample safeguards and default-view readback together measure 10,461,568 unpacked bytes.
-const MAX_UNPACKED_BYTES = 10224 * 1024;
+// The bounded feedback command log and its exporter need the next 16 KiB step.
+const MAX_UNPACKED_BYTES = 10240 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -327,7 +328,9 @@ const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
 // Byte and per-file budgets remain unchanged; account only for these two shipped files.
 // The report-to-native-datav orchestration skill adds one packaged entry.
-const MAX_ENTRY_COUNT = 825;
+// Feedback submission and attachment handling add two runtime modules.
+// Local feedback diagnostics add one runtime module.
+const MAX_ENTRY_COUNT = 828;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
@@ -391,6 +394,7 @@ const REQUIRED_PACKAGE_FILES = [
   'yida-skills/skills/yida-cool-card/references/configuration.md',
   'yida-skills/skills/yida-cool-card/references/design.md',
   'lib/feedback/report.js',
+  'lib/feedback/command-log.js',
   'yida-skills/skills/yida-feedback/references/user-interaction.md',
   'yida-skills/skills/yida-feedback/SKILL.md',
   'yida-skills/skills/yida-feedback/references/report-input.md',

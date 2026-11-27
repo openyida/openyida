@@ -89,11 +89,11 @@ describe('auto update environment guards', () => {
 });
 
 describe('auto update policy', () => {
-  test('offline feedback report bypasses update checks before npm or registry access', async () => {
+  test.each(['report', 'logs'])('offline feedback %s bypasses npm and registry access', async action => {
     const execFileSyncFn = jest.fn(() => { throw new Error('Must not invoke npm'); });
     const fetchLatestVersionFn = jest.fn(() => { throw new Error('Must not use network'); });
     const result = await maybeAutoUpdate({
-      command: 'feedback', args: ['report'], currentVersion: '1.0.0', env: {},
+      command: 'feedback', args: [action], currentVersion: '1.0.0', env: {},
       execFileSyncFn, fetchLatestVersionFn,
     });
     expect(result).toMatchObject({ status: 'skipped', reason: 'command' });

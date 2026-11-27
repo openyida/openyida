@@ -467,27 +467,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 ### Report a problem or contribute a fix
 
-If feedback is enabled for your organization, sign in with `openyida login` and run `openyida feedback submit`. The terminal guides you through the issue, optional screenshots or log excerpts, and a review before sending. `openyida feedback url` prints the guide URL.
+Ask your agent to report the issue. It shows the affected app or page, a description and any selected files. For visual issues, you can add a screenshot or submit the preview as shown. You can remove the diagnostic log before confirming. The agent submits using your YiDA login and returns a feedback ID. If you cannot log in, run `openyida feedback url` to open the public login-issues form. [Feedback skill](yida-skills/skills/yida-feedback/SKILL.md)
 
-For scripts, save the feedback you want to share in `feedback.json`.
-
-```json
-{"type":"error","description":"Publishing showed an error after saving the page","reproduction":"Save, then publish"}
-```
-
-Supported types are `slow`, `error`, `unexpected_result`, `hard_to_use`, and `suggestion`. Optional fields include `title`, `expected`, `reproduction`, `occurredAt` (ISO 8601 with a time zone), and `diagnosticRef` (a command UUID). Optional `environment` fields are `cliVersion`, `platform`, `arch`, `nodeVersion`, `host`, and `releaseChannel`. Each preserves a native string of up to 128 characters. Null fields are omitted. Root `host` and `channel` inputs are compatible aliases normalized into `environment.host` and `environment.releaseChannel`. `commandExecutionId`, `traceId`, and `errorCode` preserve native correlation values as strings of up to 128 characters. For `domain`, use `auth`, `app`, `page`, `data`, `workflow`, `cli`, or `other`. For `impact`, use `blocked`, `workaround`, `minor`, or `unknown`.
-
-```bash
-request_id=$(node -p "require('node:crypto').randomUUID()")
-printf '%s\n' "$request_id"
-openyida feedback submit --input feedback.json --request-id "$request_id" --confirm
-```
-
-To include evidence, repeat `--screenshot <path>` or `--log <path>` for each selected file, and add `--include-environment` if you want to share the current OpenYida version, platform, architecture, and Node.js version. Use `--preview` in place of `--confirm`. Review the listed files and environment, then rerun with the same options, `--confirm`, and `--review-digest <digest from preview>`. The limits are three PNG/JPEG screenshots up to 2 MiB each, one UTF-8 text log up to 512 KiB, and 4 MiB combined. Check the selected contents and image metadata for credentials and customer data before confirming.
-
-Keep the generated request ID with the feedback file. If the result is pending or unknown, keep the original ID, input, account, and organization and reconcile the receipt before another submission. The CLI returns a feedback reference once the record is confirmed.
-
-Tell your AI: “OpenYida keeps failing. Analyze the cause and prepare feedback.” You can prepare a redacted report and reproduction steps without a GitHub account or a local source checkout. Preparing a report does not submit it.
+For an offline draft:
 
 ```bash
 openyida feedback report --input summary.json --output-dir feedback-draft-001
@@ -696,7 +678,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida formula test <appType> <formUuid> [formula\|file] [--data-file file \| --cases file] [--field fieldId] [--timezone-offset minutes] [--context form\|validation] [--binding platform\|numeric-literals] [--expect JSON] [--json]` | Evaluate a non-writing formula in Yida and compare its result |
 | `openyida update` | Check and update to latest version |
 | `openyida export-conversation [options]` | Export AI conversation records |
-| `openyida feedback <report\|github\|url\|submit\|dismiss\|status> [options]` | Submit feedback, prepare local issue reports and manage reminders |
+| `openyida feedback <report\|github\|url\|logs\|submit\|dismiss\|status> [options]` | Submit feedback, prepare local issue reports and manage reminders |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|resolve\|sources> [options]` | Detect asset capability / resolve materials |
@@ -922,5 +904,3 @@ Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://g
 ## License
 
 [MIT](./LICENSE) © 2026 Alibaba Group Holding Limited
-
-Feedback evidence is sent as JSON to `/openyida/feedback/submit.json` on the current login session origin. Each `evidence` item contains `kind`, a generated `name`, `contentType`, and padded `contentBase64`. Gzip log files must also decompress to UTF-8 text of at most 512 KiB. A complete request is at most 6 MiB. Pending or interrupted submissions require receipt reconciliation before another submission.

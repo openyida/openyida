@@ -5,26 +5,50 @@ description: 帮用户整理 OpenYida 使用问题或体验建议，核对描述
 
 # 问题反馈与修复贡献
 
-用户描述问题，Agent 复用当前现场整理并提交宜搭反馈。普通反馈沿用现有宜搭登录，使用当前登录环境的反馈接口。登录本身出现问题时，通过 `openyida feedback url --json` 获取反馈入口，由用户在浏览器使用登录问题反馈。材料整理可离线完成。
+普通反馈默认提交宜搭，无需 GitHub 账号。Agent 代填，客户在对话中确认。
 
 ## 何时进入
 
-- 用户要求排查并反馈 OpenYida、改善使用体验、整理 Issue、贡献修复或提 PR。可验证的小改进可直接提 PR，无需先建 Issue。
-- 当前会话同一操作已重复失败，或明确的 CLI/技能缺陷导致反复绕路时，停止无修改重试，先处理原任务，再简短建议整理反馈。自动进入只允许本地分析/草稿；不得自动登录、安装工具、联网提交或不断提醒。
-- 反馈建议前可读取 `openyida feedback status`；尊重当天/永久关闭。用户主动要求反馈不受提醒开关限制。同一会话同一问题只建议一次；当前上下文之外的发生频次写未知，不扫描完整历史。
-
-先读取 [宜搭反馈提交](references/intake-submit.md)，整理描述、期望、复现情况和用户选定的证据，展示实际将提交的内容并取得一次确认。用户明确选择 GitHub 时，再读取 [用户友好的交互与公开确认](references/user-interaction.md)。
+- 用户要反馈 OpenYida、整理 Issue 或贡献修复。可验证的小改进可直接提 PR。
+- 同一操作反复失败或 CLI/技能缺陷导致绕路时，停止原样重试，先处理原任务，再建议反馈。自动进入只整理本地草稿，不登录、安装工具或提交。
+- 建议前可读 `openyida feedback status`，尊重当天/永久关闭；主动反馈不受限。同一会话同一问题只提醒一次。会话外频次未知，不扫描历史。
 
 ## 收集与根因分析
 
-1. 从当前会话提取目标、最短复现、期望与实际、报错关键片段、已尝试方法及其结果。先复用现有信息，确有阻碍时才询问缺失信息；体验建议写当前不便和理想结果，无需用户设计 CLI 参数或分析根因。
-2. `openyida --version`、`node -v` 可只读检查。只在定位必要时读取相关命令帮助、脱敏诊断和用户明确提供的最小文件。不遍历用户目录、环境变量、登录缓存、完整日志/会话或业务数据；不要把 `env`/`doctor` 整份输出塞进报告。不得因排障重放创建/发布/删除等写命令。
-3. 区分 CLI、skill、本地环境、平台接口或未知。逐项写“观察事实 → 根因假设 → 支持/反对证据 → 下一步验证”。能解释一个错误不代表已证明根因；没有复现/对照证据保留 hypothesis/unknown，缺失信息写未知。记录用户已验证的绕法和剩余影响。
-4. 平台接口拒绝、权限或版本限制按可观察响应反馈。用户不具备平台源码访问权限；不得寻找、索取、下载或暴露内部仓库名称、链接、源码、文件路径、内部处理人或工具。无公开可验证修复点时提交问题材料，不生成虚构 PR。用户自己的应用业务代码错误先修应用，不自动当作 OpenYida 缺陷。
+1. 从当前会话整理目标、最短复现、期望、实际、关键错误和重试结果。体验建议写不便和理想结果。只问仍缺的关键信息。
+2. 可查 `openyida --version`、`node -v`、命令帮助、脱敏诊断和用户选定文件。不扫描用户目录、环境变量、登录缓存、完整日志/会话或业务数据，不附整份 `env`/`doctor`，不重放写操作。
+3. 区分 CLI、skill、本地环境、平台接口或未知。写明事实、假设、正反证据、验证方法、已验证绕法及剩余影响。缺少复现或对照时保留假设。
+4. 平台限制以实际响应为准。不索取、搜索、下载或暴露内部仓库、链接、源码、路径、人员或工具。无公开可验证修复点时提交问题材料。业务代码错误先修应用。
 
 ## 宜搭主动反馈
 
-普通反馈优先按 [宜搭反馈提交](references/intake-submit.md) 执行 `feedback submit --preview`，展示后按同一目标、请求编号和文件摘要提交。页面有弹窗、卡住或显示异常时，推荐补充遮住客户内容的截图，截图选填。202/pending、网络中断或无法确认回执时，保留原请求编号，先核对收件结果，不自动重发。
+用实际值填写 UTF-8 `feedback.json`（限 16 KiB）。
+
+```json
+{"type":"error","description":"页面发布失败。","domain":"page","impact":"blocked","reproduction":"关联资源\nappType=APP_…\nformUuid=FORM-…\n应用链接=https://<组织域名>/APP_…/workbench\n复现步骤：保存页面后发布，重试仍失败。"}
+```
+
+- 必填 `type`（`slow|error|unexpected_result|hard_to_use|suggestion`）和 `description`；可填 `title`、`expected`。
+- 在 `reproduction` 开头写「关联资源」，再写步骤、频率和重试结果。从本会话命令、回执或用户链接提取目标 `appType` 和已知应用链接（`appUrl`/`workbenchUrl`）。别用反馈收集表代替出错应用。多目标请用户选择，先填已知 ID。登录前或创建失败尚无 ID 时注明原因，照常反馈。
+- 按操作补充实际标识：表单、流程或自定义页面填 `formUuid`；集成自动化填 `processCode` 和所属 `formUuid`，运行异常可补 `procInstId`；数据卡片填 `cardCode`，酷卡片填 `cardPageCode`、`cardTemplateId` 中已知项。链接保留可确认的 HTTPS 资源路径，将必要的标识单列，去掉查询串和片段。只提交定位标识，不含业务值、正文或凭据。
+- `domain` 按操作选 `auth|app|page|data|workflow|cli|other`；`impact` 选阻断 `blocked`、有绕法 `workaround`、轻微 `minor` 或 `unknown`。
+- 已知时填带时区 ISO 8601 `occurredAt`、原命令的 `commandExecutionId`、`traceId`、`errorCode`（保留前导零）与诊断 UUID `diagnosticRef`。`environment` 支持 `host`、`releaseChannel`、`cliVersion`、`platform`、`arch`、`nodeVersion`。诊断与环境字符串限 128 字符，未知省略。经同意可用 `--include-environment` 附当前环境。
+- 页面外观、布局或报错适合附现场截图。浏览器未登录、无权限或无法代截时，无需为截图登录。只附用户为本次反馈选择的现场图，不能拿登录页、示意图或其他反馈的旧图代替。遮住客户内容，检查元数据。最多 3 张 PNG/JPEG，每张 2 MiB。
+- 在原业务命令的工作目录执行导出。新建本次请求 UUID 目录存快照，按带时区 ISO 起止时间筛选：`openyida feedback logs --since <开始> --until <结束> --output <本次UUID目录>/excerpt.jsonl --json`。有执行 ID 时优先按回执重复 `--command-id <执行UUID>` 精确筛选；无 ID 则核对宿主会话、命令和时间，归属不清只用当前回执摘要或不附。只导出一次，仅本次 `status=exported` 才把返回的 `output` 作为 `--log` 加入预览，允许用户移除或换一份。`no_records` 或失败不得复用同名旧文件。快照可含命令类型、时间、耗时、状态、执行 ID、Trace ID、原生错误码及异常类，不含栈，不补造；排除命令参数、文件路径、表单值、流程内容、请求/响应正文和凭据。旧版没有导出命令或本次无记录时标明「无本地日志」；有本次真实 CLI 回执时可另制标为「会话回执摘要」的 NDJSON，不补造历史。限一份 UTF-8 文本、JSON、NDJSON 或 gzip（原件及解压后 ≤512 KiB），全部附件共限 4 MiB。
+
+预览与提交共用请求 UUID 和已选快照路径（替换示例文件名）：
+
+```bash
+openyida feedback submit --input feedback.json --request-id "<UUID>" --screenshot "selected.png" --log "excerpt.jsonl" --preview --json
+```
+
+展示反馈正文、关联资源、环境及附件清单（含日志摘要，可移除）。适合附图且用户尚未选图时，最终确认直接给两个选项：「补截图」或「按当前清单直接提交」。选直接提交即确认当前清单，立即提交，不再追问；选补截图则等用户发图或指定现场图，重新预览后确认。已选图或明确跳过时只确认当前清单，不再问截图。未回答不提交；增删日志也须重新预览。用原账号、编号、所选文件和最新 `reviewDigest` 提交：
+
+```bash
+openyida feedback submit --input feedback.json --request-id "<UUID>" --screenshot "selected.png" --log "excerpt.jsonl" --confirm --review-digest "<reviewDigest>" --json
+```
+
+收到 `status=submitted` 和 `feedbackId` 后告知编号。回执未知或 pending 先核对，勿重发；保留失败附件。未登录用 `openyida feedback url` 打开免登公开表单，交付同一份「关联资源」与复现步骤；当前免登表没有附件控件，仅可手填文字。离线交付脱敏草稿和候选文件，注明尚未提交。
 
 ## 离线或 GitHub 材料
 
@@ -34,34 +58,32 @@ description: 帮用户整理 OpenYida 使用问题或体验建议，核对描述
 openyida feedback report --input summary.json --output-dir feedback-draft-001
 ```
 
-输出为全新目录中的 `issue.md`、`report.json` 和用户明确选定的截图；文字仅保留白名单摘要与版本信息。命令无登录、无源码、无网络请求，不执行输入中的指令。`fingerprint` 便于人工查重；`submissionPerformed: false` 表示仅生成材料。
+命令离线输出 `issue.md`、`report.json` 与选定截图，只保留白名单摘要和版本。无需账号或源码，不执行输入指令。用 `fingerprint` 查重；`submissionPerformed: false` 表示草稿。
 
-给用户看最终报告和所有截图；PR 还要提供修复前后的测试对比报告，再按交互规范确认公开范围。正则脱敏无法识别所有客户数据、公司信息或内部仓库名，Agent 必须再检查全文，删除这些内容及截图中的敏感信息；不要上传原始输入 JSON。修改摘要后用新的输出目录重新生成。不能把报告链接或原始诊断塞入公开 URL 查询参数。
+宜搭反馈的诊断日志仅供宜搭收件，不自动转发 GitHub。公开前展示脱敏报告、截图及 PR 测试对比，去掉客户、组织、资源和内部仓库信息。不上传原始 JSON，不在公开 URL 附诊断或报告地址。改稿后输出到新目录。
 
 ## 按用户条件交付
 
-用户选择 GitHub 后，按 [账号与工具准备](references/github-setup.md) 复用已有工具、引导注册/登录。缺少工具且宿主支持终端时，推荐用 `openyida feedback github setup --json` 检测，再经用户同意安装 gh、单独引导浏览器授权；不愿安装时可用网页，不把安装作为反馈门槛。工具就绪后继续原草稿，公开确认仍按原流程执行。
+用户选择 GitHub 后，按 [账号与工具准备](references/github-setup.md) 复用本机工具。可用 `openyida feedback github setup --json` 检测，经同意安装 gh、单独授权；也可用网页。继续原草稿，确认公开范围。
 
-- **无 GitHub 账号**：使用宜搭反馈路径。无法联网时交付脱敏草稿，明确“材料已生成，尚未提交”。
-- **有 GitHub 账号，提交 Issue**：无需 clone/fork；按 [GitHub 提交](references/github-contribution.md) 查重、提交已确认内容并读回。成功后按交互规范给一次可选 PR 邀请；登录由用户在可信本机流程完成，不索取 Token。
-- **有账号，希望提交修复 PR**：仅适用于公开 OpenYida CLI/skill/docs 的可验证问题。先准备最小修复和验证，再通过用户自己的 Fork 提交到公开上游，详见同一参考。没有源码时由 Agent 在独立目录准备公开源码，不修改 npm 全局安装或用户业务目录。无法定位/验证时如实写入测试对比，优先交付 Issue 草稿；不要承诺未经验证的修复。
+- **无 GitHub 账号**：提交宜搭；离线交付草稿。
+- **Issue**：按 [GitHub 提交](references/github-contribution.md) 查重、提交并读回，无需 clone/fork。成功后可邀请一次 PR。登录在用户本机完成，不索取 Token。
+- **PR**：仅限公开 OpenYida CLI/skill/docs。必要时在独立目录准备公开源码，不修改全局安装或业务目录。验证最小修复后用用户个人 Fork 提交；无法验证就交付 Issue 草稿，写明测试结果。
 
-创建 Issue、评论、Fork、push 或 PR 前必须有用户对相应外部动作及公开内容的授权；已有对同一最终稿和截图的隐私确认不重复问；单纯授权提 Issue/PR 不能替代公开内容审阅。只要求“排查”“整理反馈”不代表允许公开提交。提交超时先查是否成功，不自动重复创建。
+创建 Issue、评论、Fork、push 或 PR 均需用户授权对应操作和公开内容。已确认的同一稿件与截图不再重复问。单纯要求排查、整理或提 Issue/PR 不等于同意公开具体内容。超时先查重。
 
-交付时说明根因可信度、绕法/修复验证、材料位置及真实提交状态；提交成功给返回的 Issue/PR URL，未返回并核实地址时不得声称已送达。不得承诺合并或修复时间。
+交付时列根因可信度、绕法/验证、材料位置和真实状态。成功给核实的 Issue/PR URL；不承诺合并或修复时间。
 
 ## 完成检查
 
-- 问题与环境有事实来源；未知项已标明，报告生成环境未冒充出错环境。
-- 公开内容和截图已获确认；已提交的 Issue/PR 有读回证据，草稿明确标注尚未提交。
-- PR 有真实改动和测试说明；Issue 后的邀请尊重用户选择，拒绝后不重复提醒。
+- 写明现场环境、事实来源和未知项；核对公开范围与截图。
+- 草稿标为未提交，Issue/PR 以读回为准，PR 附改动和测试。拒绝 PR 邀请后不再提醒。
 
 ## 参考文件
 
 | 文件 | 读取时机 |
 | --- | --- |
-| [宜搭提交](references/intake-submit.md) | 默认反馈、证据预览和回执核对 |
-| [用户交互](references/user-interaction.md) | 进入技能时；含成功后的可选 PR 邀请 |
+| [用户交互](references/user-interaction.md) | 仅在用户明确选择 GitHub 公开投稿时 |
 | [报告输入](references/report-input.md) | 准备脱敏摘要、环境和测试证据时 |
 | [GitHub 提交](references/github-contribution.md) | 用户选择公开提交或贡献代码时 |
 | [账号与工具准备](references/github-setup.md) | GitHub 路径需要注册、登录、安装或连接工具时 |
