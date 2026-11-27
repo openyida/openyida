@@ -114,6 +114,30 @@ test('retains a native network error if its caller wraps it, without copying hos
   expect(readCommandLog({ since: 0 })).toEqual([expect.objectContaining({ errorCode: 'ECONNRESET', nativeErrorObserved: true, status: 'error' })]);
 });
 
+test('retains the record after a transient Windows sharing violation and repeated lock contention', () => {
+  const rename = fs.renameSync;
+  let attempts = 0;
+  jest.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+    if (path.basename(to) === '.writer' && ++attempts <= 14) {
+      throw Object.assign(new Error('busy'), { code: attempts === 1 ? 'EBUSY' : 'EPERM' });
+    }
+    return rename(from, to);
+  });
+  const unlink = fs.unlinkSync;
+  let busyOnRelease = true;
+  jest.spyOn(fs, 'unlinkSync').mockImplementation(target => {
+    if (busyOnRelease && path.basename(path.dirname(target)) === '.writer') {
+      busyOnRelease = false;
+      throw Object.assign(new Error('busy'), { code: 'EBUSY' });
+    }
+    return unlink(target);
+  });
+  const row = entry();
+  appendCommandLog(row, options);
+  expect(readCommandLog(options).map(record => record.commandExecutionId)).toEqual([row.commandExecutionId]);
+  expect(fs.readdirSync(options.directory)).toEqual(['commands.log']);
+});
+
 test('concurrent processes share one intact journal and recover a dead writer', async () => {
   fs.mkdirSync(options.directory, { mode: 0o700 });
   const lock = path.join(options.directory, '.writer');
