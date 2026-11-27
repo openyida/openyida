@@ -19,8 +19,48 @@ const { setLanguage } = require('../lib/core/i18n');
 const { buildSpecProcessAndViewJson } = require('../lib/integration/integration-spec-builder');
 const { projectBatchData } = require('../lib/integration/integration-batch-data');
 const { batchFixture } = require('./helpers/integration-batch-fixture');
+const { deleteFixture, deleteSchemas } = require('./helpers/integration-delete-fixture');
+const { projectDataDeletes } = require('../lib/integration/integration-data-delete');
 
 describe('integration control-plane readback', () => {
+  function deleteReadback() {
+    const view = buildSpecProcessAndViewJson({
+      spec: deleteFixture(), appType: 'APP-TEST', formUuid: 'FORM-TRIGGER', processCode: 'LPROC-DELETE',
+      formSchemasByUuid: deleteSchemas,
+    }).viewJson;
+    const detail = JSON.parse(JSON.stringify(view));
+    const dependencies = {
+      listAllLogicflows: async () => [{ formUuid: 'FORM-TRIGGER', processCode: 'LPROC-DELETE', status: 'y' }],
+      getLogicflowDetail: async () => ({ success: true, content: view }),
+      queryProcessVersions: jest.fn(async () => ({ success: true, content: { data: [{ id: 51, version: 2, status: 'PUBLISHED' }] } })),
+      getProcessById: jest.fn(async () => ({ success: true, content: detail })),
+    };
+    return { detail, dependencies, input: { appType: 'APP-TEST', formUuid: 'FORM-TRIGGER', processCode: 'LPROC-DELETE',
+      expectedStatus: 'y', expectedDataDeletes: projectDataDeletes(view) } };
+  }
+
+  test('verifies the delete selector on the exact published version', async () => {
+    const { dependencies, input } = deleteReadback();
+    await expect(verifyLogicflowFinalState({}, input, dependencies)).resolves.toMatchObject({
+      dataDeleteProjection: 'EXACT', dataDeleteVersion: { processId: '51', processVersion: 2 },
+    });
+    expect(dependencies.queryProcessVersions).toHaveBeenCalledWith({}, 'APP-TEST', 'LPROC-DELETE', 'PUBLISHED', { pageSize: 2 });
+    expect(dependencies.getProcessById).toHaveBeenCalledWith({}, expect.objectContaining({ processId: '51', processVersion: 2 }));
+  });
+
+  test.each([
+    ['missing deletion', (nodes) => { nodes.splice(nodes.findIndex(node => node.componentName === 'DeleteDataNode'), 1); }],
+    ['changed reference', (nodes) => { nodes.find(node => node.componentName === 'DeleteDataNode').props.deleteData.sourceId = 'different'; }],
+    ['changed target', (nodes) => { nodes.find(node => node.componentName === 'GetBatchDataNode').props.getData.sourceId = 'FORM-OTHER'; }],
+    ['changed condition', (nodes) => { nodes.find(node => node.componentName === 'GetBatchDataNode').props.getData.condition.rules[0].ruleValue = 'batch-B'; }],
+    ['changed limit', (nodes) => { nodes.find(node => node.componentName === 'GetBatchDataNode').props.getData.quantity = 42; }],
+  ])('rejects a published delete readback with %s', async (_name, mutate) => {
+    const { detail, dependencies, input } = deleteReadback();
+    mutate(detail.schema.children);
+    await expect(verifyLogicflowFinalState({}, input, dependencies)).rejects.toMatchObject({
+      code: 'INTEGRATION_READBACK_DATA_DELETE_MISMATCH',
+    });
+  });
   test('verifies persisted batch controls and rejects a silent batch-to-single downgrade', async () => {
     const built = buildSpecProcessAndViewJson({ ...batchFixture(), appType: 'APP-TEST', formUuid: 'FORM-QUOTE' });
     const detail = JSON.parse(JSON.stringify(built.viewJson));

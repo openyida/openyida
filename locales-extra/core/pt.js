@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'Excluir dados',
+    data_delete_invalid: 'O nó de exclusão {0} tem uma origem ou um filtro inválido. Consulte os detalhes do erro.',
+    data_delete_readback_mismatch: 'Não foi possível verificar a versão, o destino e o filtro do nó de exclusão.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

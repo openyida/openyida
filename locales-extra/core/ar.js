@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'حذف البيانات',
+    data_delete_invalid: 'مصدر عقدة الحذف {0} أو عامل تصفيتها غير صالح. راجع تفاصيل الخطأ.',
+    data_delete_readback_mismatch: 'تعذر التحقق من تطابق إصدار عقدة الحذف وهدفها وعامل تصفيتها.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

@@ -574,6 +574,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'データを削除',
+    data_delete_invalid: '削除ノード {0} の参照元またはフィルターが無効です。エラーの詳細を確認してください。',
+    data_delete_readback_mismatch: '削除ノードのバージョン、対象、フィルターを検証できませんでした。',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

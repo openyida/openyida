@@ -45,6 +45,7 @@ jest.mock('../lib/integration/integration-api', () => ({
 }));
 jest.mock('../lib/integration/integration-readback', () => ({
   verifyLogicflowFinalState: jest.fn(),
+  verifyDataDeleteVersion: jest.fn(),
   projectAddDataAssignments: jest.fn(() => []),
   projectConnectorAssignments: jest.fn(() => []),
   projectSystemTokenBindings: jest.fn(() => []),
@@ -66,6 +67,7 @@ const connectorSchema = require('../lib/integration/integration-connector-schema
 const systemToken = require('../lib/connector/yida-system-token');
 const { run } = require('../lib/integration/integration-create');
 const { loadIntegrationScenarios } = require('../scripts/eval/integration-contract/scenario-loader');
+const { deleteFixture } = require('./helpers/integration-delete-fixture');
 
 describe('integration create command', () => {
   let logSpy;
@@ -89,6 +91,7 @@ describe('integration create command', () => {
     integrationApi.getFormSchema.mockReset();
     integrationApi.getFormSchema.mockResolvedValue([]);
     integrationApi.saveProcess.mockReset();
+    integrationReadback.verifyDataDeleteVersion.mockReset();
     fetchFormPageList.mockReset();
     integrationReadback.verifyLogicflowFinalState.mockResolvedValue({
       verificationLevel: 'PLATFORM_LIST_EXACT_DETAIL_PRESENT',
@@ -111,6 +114,58 @@ describe('integration create command', () => {
     logSpy.mockRestore();
     exitSpy.mockRestore();
     tempDirs.forEach((dir) => fs.rmSync(dir, { recursive: true, force: true }));
+  });
+
+  function setupDeletePreflight(targetFormType = 'receipt') {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-TRIGGER', formType: 'receipt', formName: '触发' },
+      { formUuid: 'FORM-TARGET', formType: targetFormType, formName: '目标' },
+    ]);
+    integrationApi.getFormSchema.mockResolvedValue([{ componentName: 'TextField', props: { fieldId: 'textField_batch' } }]);
+  }
+
+  test.each([
+    ['unfiltered', (nodes) => { nodes[0].filterType = 'all'; nodes[0].conditions = []; }, 'receipt'],
+    ['unknown field', (nodes) => { nodes[0].conditions[0].fieldId = 'textField_unknown'; }, 'receipt'],
+    ['empty value', (nodes) => { nodes[0].conditions[0].value = ''; }, 'receipt'],
+    ['unknown operator', (nodes) => { nodes[0].conditions[0].opCode = 'Unknown'; }, 'receipt'],
+    ['batch without a limit', (nodes) => { delete nodes[0].quantity; }, 'receipt'],
+    ['cross app', (nodes) => { nodes[0].appType = 'APP-OTHER'; }, 'receipt'],
+    ['wrong source order', (nodes) => { nodes.reverse(); }, 'receipt'],
+    ['process form', () => {}, 'process'],
+  ])('rejects deletion before any remote write: %s', async (_name, edit, formType) => {
+    setupDeletePreflight(formType);
+    const spec = deleteFixture();
+    edit(spec.nodes);
+    await expect(run(['APP_TEST', 'FORM-TRIGGER', '删除测试', '--spec', writeTempSpec(spec), '--publish'])).rejects.toThrow();
+    expect(integrationApi.createLogicflow).not.toHaveBeenCalled();
+    expect(integrationApi.saveProcess).not.toHaveBeenCalled();
+  });
+
+  test('checks the exact delete draft before publishing and passes the expected selector to published readback', async () => {
+    setupDeletePreflight();
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    const options = ['APP_TEST', 'FORM-TRIGGER', '删除测试', '--spec', writeTempSpec(deleteFixture()), '--publish'];
+    await run(options);
+    expect(integrationReadback.verifyDataDeleteVersion).toHaveBeenCalledWith(expect.any(Object),
+      { appType: 'APP_TEST', formUuid: 'FORM-TRIGGER', processCode: 'LPROC-TEST' }, 'SAVED',
+      [expect.objectContaining({ formUuid: 'FORM-TARGET', quantity: 2 })]);
+    expect(integrationReadback.verifyDataDeleteVersion.mock.invocationCallOrder[0])
+      .toBeLessThan(integrationApi.saveProcess.mock.invocationCallOrder[1]);
+    expect(integrationReadback.verifyLogicflowFinalState).toHaveBeenCalledWith(expect.any(Object),
+      expect.objectContaining({ expectedDataDeletes: [expect.objectContaining({ formUuid: 'FORM-TARGET', quantity: 2 })] }));
+  });
+
+  test('keeps an unverifiable delete draft disabled', async () => {
+    setupDeletePreflight();
+    integrationApi.createLogicflow.mockResolvedValue('LPROC-TEST');
+    integrationApi.saveProcess.mockResolvedValue({ success: true });
+    integrationReadback.verifyDataDeleteVersion.mockRejectedValue(new Error('draft differs'));
+    await expect(run(['APP_TEST', 'FORM-TRIGGER', '删除测试', '--spec', writeTempSpec(deleteFixture()), '--publish']))
+      .rejects.toMatchObject({ code: 'INTEGRATION_DRAFT_DATA_DELETE_UNVERIFIED', details: { processCode: 'LPROC-TEST', published: false } });
+    expect(integrationApi.saveProcess).toHaveBeenCalledTimes(1);
+    expect(integrationApi.saveProcess.mock.calls[0][1]).toMatchObject({ isOnline: false, oneShot: true });
   });
 
   test.each([

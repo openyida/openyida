@@ -12,7 +12,7 @@
 | 查询单条/多条 | `GetSingleDataNode/GetBatchDataNode` 的真实 `getData` | `dataRetrieve`，可直接生成；多条另填 `retrieveType: batch/quantity` |
 | 新增单条/多条 | `AddDataNode` 的真实 `addDataRules` | `dataCreate`，可直接生成；多条另填 `createType: batch/batchSource` |
 | 更新 | `UpdateDataNode` 的真实 `updateDataRules` | `dataUpdate`，可直接生成 |
-| 删除 | `DeleteDataNode` 的真实 `deleteData` | 当前未封装 |
+| 删除 | `DeleteDataNode` 的真实 `deleteData` | `dataDelete`，引用同一路径已执行的 `dataRetrieve` |
 
 流程数据节点当前需要已有真实配置才能透传；自动化有明确的简化输入。不能因为复用同一配置器，就在两种入口中交换 JSON。
 
@@ -23,6 +23,7 @@
 - 新增主表：普通目标表单 `formUuid` 和非空 `assignments`。
 - 新增子表：`insertType: sub_table`、目标记录 `source`、目标子表 `subFormUuid` 和非空 `assignments`。
 - 更新：上游 `source` 或明确的匹配条件，以及非空 `assignments`。
+- 删除：在同一应用的普通表单主表上先按条件取数，再以 `{"type":"dataDelete","source":"queryRows"}` 引用上游取数节点的 `id`。上游必须按真实主表字段做 `Equal` 比较，`valueType` 为 `literal`，目前接受非空文本或有限数字。多条查询还需明确 `quantity`，需要固定批次顺序时同时提供排序。确认草稿和启用版本的节点、来源、筛选及数量后，再用运行日志与实例 ID 核对实际删除结果。
 
 赋值的 `column` 使用目标字段 ID，值来源按 [条件与变量](conditions-variables.md) 选择。真实流程表单不能当作普通新增数据的目标；发起流程用 [扩展执行](extensions.md) 中的 `initiateApproval`。
 

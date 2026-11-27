@@ -8,6 +8,8 @@ jest.mock('../lib/core/utils', () => ({
 
 const { httpGet } = require('../lib/core/utils');
 const { createYidaClient } = require('../lib/core/yida-client');
+const { buildSpecProcessAndViewJson } = require('../lib/integration/integration-spec-builder');
+const { deleteFixture, deleteSchemas } = require('./helpers/integration-delete-fixture');
 const {
   getFormSchema,
   getLogicflowDetail,
@@ -59,6 +61,46 @@ describe('integration api', () => {
     const versionQuery = get.mock.calls.find(([path]) => path.includes('pageProcessVersion'))[1];
     expect(versionQuery({})).toMatchObject({ status: 'PUBLISHED' });
     expect(postForm).not.toHaveBeenCalled();
+  });
+
+  test.each([false, true])('requires the trusted delete selector on the published version before enable (changed=%s)', async (changed) => {
+    const { viewJson } = buildSpecProcessAndViewJson({ spec: deleteFixture(), appType: 'APP',
+      formUuid: 'FORM', formSchemasByUuid: deleteSchemas });
+    const observed = JSON.parse(JSON.stringify(viewJson));
+    if (changed) {
+      observed.schema.children.find(node => node.componentName === 'GetBatchDataNode').props.getData.quantity = 5;
+    }
+    const baseline = require('../lib/integration/integration-baseline');
+    const location = jest.spyOn(baseline, 'location').mockReturnValue(__filename);
+    const load = jest.spyOn(baseline, 'loadBaseline').mockReturnValue({ viewJson });
+    const postFormOnce = jest.fn().mockResolvedValue({ success: true, content: true });
+    const get = jest.fn(async path => {
+      if (path.includes('listFlowByProcessCodes')) {
+        return { success: true, content: { data: [{ processCode: 'FLOW', formUuid: 'FORM', type: '1' }] } };
+      }
+      if (path.includes('pageProcessVersion')) {
+        return { success: true, content: { data: [{ id: '123', version: 2 }] } };
+      }
+      if (path.includes('getProcessById')) { return { success: true, content: observed }; }
+      throw new Error('unexpected platform read');
+    });
+    createYidaClient.mockReturnValue({ get, postFormOnce });
+    try {
+      const { switchLogicflow } = require('../lib/integration/integration-api');
+      const attempt = switchLogicflow({}, { appType: 'APP', formUuid: 'FORM', processCode: 'FLOW', enable: true });
+      if (changed) {
+        await expect(attempt).rejects.toMatchObject({ code: 'INTEGRATION_READBACK_DATA_DELETE_MISMATCH' });
+        expect(postFormOnce).not.toHaveBeenCalled();
+      } else {
+        await expect(attempt).resolves.toMatchObject({ expectedDataDeletes: [
+          expect.objectContaining({ formUuid: 'FORM-TARGET', quantity: 2 }),
+        ] });
+        expect(postFormOnce).toHaveBeenCalledTimes(1);
+      }
+    } finally {
+      location.mockRestore();
+      load.mockRestore();
+    }
   });
 
   test('timer switching uses its verified native binding type instead of form-event type', async () => {

@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'Xóa dữ liệu',
+    data_delete_invalid: 'Nút xóa {0} có nguồn hoặc bộ lọc không hợp lệ. Xem chi tiết lỗi.',
+    data_delete_readback_mismatch: 'Không thể xác minh phiên bản, đích và bộ lọc của nút xóa.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

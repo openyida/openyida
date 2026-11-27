@@ -97,7 +97,7 @@ openyida integration diagnose --file <异常文件> [--json]
 | 发起/触发 | 表单事件、流程完成或节点事件、定时 | 定时使用 spec schedule；不设置发起页字段权限；当前不创建应用或卡片触发 |
 | 人工处理 | 无审批、办理、抄送人工节点 | 需要审批时用 `initiateApproval` 发起目标流程，在目标流程中配置审批人 |
 | 流转控制 | `route/parallel/cycle` | 循环为单层，格式见 [流转控制](../yida-flow-node-config/references/control.md) |
-| 数据操作 | `getSelf/dataRetrieve/dataCreate/dataUpdate`，含批量取数/新增 | 当前 spec 不支持删除；流程表单新增用发起审批 |
+| 数据操作 | `getSelf/dataRetrieve/dataCreate/dataUpdate/dataDelete`，支持批量取数、新增和按条件删除 | 删除引用同一路径的上游取数节点，适用于同一应用的普通表单主表。流程表单新增用发起审批。 |
 | 通知 | `sendMessage`，成员/角色/成员字段 | 当前 spec 不支持邮件或卡片 |
 | 扩展执行 | `connector/initiateApproval` | 连接器需发现真实 action schema；当前 spec 不支持代码或 AI |
 
