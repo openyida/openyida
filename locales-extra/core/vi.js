@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'Kiểm tra và cập nhật lên phiên bản mới nhất',
     cmd_export_conversation: 'Xuất bản ghi hội thoại AI',
-    cmd_feedback: 'Chuẩn bị báo cáo cục bộ, biểu mẫu phản hồi và lời nhắc',
+    cmd_feedback: 'Gửi phản hồi, chuẩn bị báo cáo cục bộ và quản lý lời nhắc',
     cmd_batch: 'Run OpenYida commands in batch',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Detect asset capability / verify image URLs / resolve materials',
@@ -2380,6 +2380,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "Xem định dạng
 Object.assign(module.exports.formula_v2, {"parallel_formula": "Dùng conditions/rules hoặc all:true cho nhánh song song; expression hiện chỉ được hỗ trợ cho nhánh route."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"Chuyển đổi sang trường đích tạo ra giá trị rỗng. Với ngày, dùng TIMESTAMP(công thức ngày) và kiểm tra giá trị gốc cùng kiểu dữ liệu.","result_missing":"Yêu cầu đã hoàn tất nhưng thiếu giá trị trường đích. Trường ngày thường cần TIMESTAMP(công thức ngày).","conversion_partial":"Giá trị chỉ được chuyển một phần thành số hoặc không hữu hạn. Hãy trả về số đầy đủ hoặc mili giây.","target_branches":"Một số kiểu kết quả {0} không phù hợp với {1}. Hãy thử từng nhánh.","date_timestamp":"Đối tượng ngày khác với giá trị lưu. Thường dùng TIMESTAMP(công thức ngày) để trả về mili giây.","numeric_result_text":"Kết quả có thể là văn bản. Dùng --field thử từng nhánh để phát hiện chuyển đổi rỗng hoặc chỉ một phần."});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'Kiểm tra nội dung rồi dùng --confirm. Dùng --preview trước nếu kèm tệp hoặc thông tin môi trường.',
+  setup_retired: 'Đã ngừng thiết lập biểu mẫu phản hồi công khai. Chạy openyida feedback url để xem cách gửi hiện tại.',
+  endpoint_invalid: 'Phản hồi yêu cầu môi trường HTTPS YiDA hợp lệ.',
+  submitted: 'Đã gửi phản hồi. Mã tham chiếu {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'Cần có loại và mô tả. Dùng ISO 8601 có múi giờ cho thời gian xảy ra và UUID cho mã chẩn đoán.',
+  unauthenticated: 'Chạy openyida login với tài khoản và tổ chức ban đầu, sau đó dùng lại mã yêu cầu cũ.',
+  feedback_blocked: 'Tài khoản này không thể gửi phản hồi.',
+  feedback_not_enabled: 'Tổ chức này chưa được bật tính năng phản hồi.',
+  idempotency_conflict: 'Mã yêu cầu này đã được dùng cho nội dung khác. Kiểm tra nội dung ban đầu hoặc dùng mã mới.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'Bạn đã gửi phản hồi quá thường xuyên. Hãy thử lại sau với mã {0} và nội dung ban đầu.',
+  feedback_unavailable: 'Dịch vụ phản hồi tạm thời không khả dụng. Hãy thử lại sau với mã {0} và nội dung ban đầu.',
+  review_required: 'Dùng --preview để kiểm tra rồi dùng --confirm --review-digest <mã>. Xem trước lại khi nội dung thay đổi.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'Chọn tệp thông thường có thể đọc.',
+  attachment_sensitive: 'Có dấu hiệu chứa thông tin xác thực. Xóa thông tin hoặc chọn bản sao đã che.',
+  attachment_image: 'Chọn ảnh chụp PNG hoặc JPEG.',
+  attachment_log: 'Chọn đoạn nhật ký văn bản UTF-8 có nội dung liên quan.',
+  invalid_attachment: 'Máy chủ đã từ chối tệp đính kèm. Kiểm tra loại và nội dung tệp.',
+  feedback_attachments_unavailable: 'Môi trường này chưa hỗ trợ tệp đính kèm. Hãy thử lại với cùng mã yêu cầu và nội dung.',
+};
 
 module.exports.feedback_report = {
   body: {

@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'Auf neueste Version aktualisieren',
     cmd_export_conversation: 'KI-Gesprächsaufzeichnungen exportieren',
-    cmd_feedback: 'Lokale Problemberichte, Feedbackformulare und Erinnerungen verwalten',
+    cmd_feedback: 'Feedback senden, lokale Berichte erstellen und Erinnerungen verwalten',
     cmd_batch: 'OpenYida-Befehle im Batch ausführen',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Materialfähigkeit prüfen / Bild-URLs verifizieren / Assets auflösen',
@@ -2380,6 +2380,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "Formelformate und 
 Object.assign(module.exports.formula_v2, {"parallel_formula": "Verwenden Sie conditions/rules oder all:true für parallele Zweige; expression wird derzeit nur für route-Zweige unterstützt."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"Die Umwandlung in das Zielfeld ergibt einen leeren Wert. Für Datumswerte TIMESTAMP(Datumsformel) verwenden und Rohwert sowie Typ prüfen.","result_missing":"Die Anfrage ist abgeschlossen, aber der Zielfeldwert fehlt. Datumsfelder benötigen meist TIMESTAMP(Datumsformel).","conversion_partial":"Der Wert wurde nur teilweise als Zahl gelesen oder ist nicht endlich. Eine vollständige Zahl oder Millisekunden zurückgeben.","target_branches":"Einige Ergebnistypen {0} passen nicht zu {1}. Jeden Zweig testen.","date_timestamp":"Ein Datumsobjekt ist nicht der gespeicherte Feldwert. Meist mit TIMESTAMP(Datumsformel) Millisekunden zurückgeben.","numeric_result_text":"Das Ergebnis kann Text sein. Mit --field jeden Zweig auf leere oder teilweise Zahlenumwandlung prüfen."});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'Prüfe den Inhalt und verwende --confirm. Für Dateien oder Umgebungsdaten zuerst --preview verwenden.',
+  setup_retired: 'Die Einrichtung öffentlicher Feedbackformulare wurde eingestellt. Rufe openyida feedback url für den aktuellen Einstieg auf.',
+  endpoint_invalid: 'Feedback erfordert eine gültige HTTPS-Umgebung für YiDA.',
+  submitted: 'Feedback gesendet. Referenznummer {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'Typ und Beschreibung sind erforderlich. Verwende für die Zeit ISO 8601 mit Zeitzone und für die Diagnose-ID eine UUID.',
+  unauthenticated: 'Führe openyida login mit dem ursprünglichen Konto und der ursprünglichen Organisation aus. Verwende dieselbe Anfrage-ID.',
+  feedback_blocked: 'Dieses Konto kann kein Feedback senden.',
+  feedback_not_enabled: 'Feedback ist für diese Organisation noch nicht verfügbar.',
+  idempotency_conflict: 'Diese Anfrage-ID gehört zu einem anderen Inhalt. Prüfe den ursprünglichen Inhalt oder nutze eine neue ID.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'Feedback wird zu oft gesendet. Versuche es später mit der Anfrage-ID {0} und demselben Inhalt erneut.',
+  feedback_unavailable: 'Der Feedbackdienst ist vorübergehend nicht verfügbar. Verwende später dieselbe Anfrage-ID {0} und denselben Inhalt.',
+  review_required: 'Prüfe die Liste mit --preview und verwende dann --confirm --review-digest <Code>. Nach Änderungen erneut prüfen.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'Wähle eine lesbare reguläre Datei.',
+  attachment_sensitive: 'Mögliche Zugangsdaten erkannt. Entferne sie oder verwende eine bereinigte Kopie.',
+  attachment_image: 'Wähle einen Screenshot im Format PNG oder JPEG.',
+  attachment_log: 'Wähle einen nicht leeren UTF-8-Logauszug mit den relevanten Zeilen.',
+  invalid_attachment: 'Der Server hat einen Anhang abgelehnt. Prüfe Typ und Inhalt.',
+  feedback_attachments_unavailable: 'Anhänge sind hier nicht verfügbar. Versuche es später mit derselben Anfrage-ID und demselben Inhalt.',
+};
 
 module.exports.feedback_report = {
   body: {

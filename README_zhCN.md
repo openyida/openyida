@@ -334,13 +334,15 @@ openyida integration enable APP_XXX FORM_XXX PROC_CODE
 
 ### 遇到问题与贡献修复
 
-直接告诉 AI：“OpenYida 反复报错，帮我分析原因并整理反馈”。无需 GitHub 账号或本地源码，即可生成脱敏报告和复现步骤；生成材料不代表已提交。
+告诉 Agent 遇到的问题，它会展示受影响的应用或页面、问题描述和所选附件。遇到界面问题，你可以补截图，也可以按当前清单直接提交。诊断日志可在确认前移除。Agent 使用当前宜搭账号提交后会返回反馈编号。无法登录时，运行 `openyida feedback url` 可打开免登的登录问题反馈表。[反馈技能](yida-skills/skills/yida-feedback/SKILL.md)
+
+需要离线草稿时可用以下命令。
 
 ```bash
 openyida feedback report --input summary.json --output-dir feedback-draft-001
 ```
 
-报告摘要由 AI 根据当前证据整理，也可加入用户明确选择的复现截图；PR 附修复前后测试对比。提交前会展示最终正文和图片，确认有无敏感信息或不想公开的内容，允许删改后再提交。输入格式见 [反馈报告说明](yida-skills/skills/yida-feedback/references/report-input.md)。分享前请检查业务信息。有 GitHub 账号时，可授权 AI 帮助提交 Issue；修复公开 OpenYida 代码或技能时，通过你自己的 Fork 提交 PR。无账号时先引导创建 GitHub 账号；实在不行，反馈到AI开发者群。
+报告摘要由 AI 根据当前证据整理，也可加入用户明确选择的复现截图；PR 附修复前后测试对比。提交前会展示最终正文和图片，确认有无敏感信息或不想公开的内容，允许删改后再提交。输入格式见 [反馈报告说明](yida-skills/skills/yida-feedback/references/report-input.md)。分享前请检查业务信息。有 GitHub 账号时，可授权 AI 帮助提交 Issue；修复公开 OpenYida 代码或技能时，通过你自己的 Fork 提交 PR。没有 GitHub 账号时使用上面的宜搭反馈链路。
 
 需要配置提交工具时，AI 可先执行 `openyida feedback github setup --json`，检测 gh 和当前账号；用户同意安装计划后再执行 `openyida feedback github setup --install --confirm --json`。macOS/Linux 复用已有 Homebrew，Windows 复用已有 WinGet；没有支持的包管理器时提供官方说明或网页方式。安装后单独引导用户在浏览器授权，不自动登录、不获取密码或 Token，安装同意也不代替公开内容确认。工具就绪后继续原草稿，详见[账号与工具准备](yida-skills/skills/yida-feedback/references/github-setup.md)。
 
@@ -543,7 +545,7 @@ openyida feedback report --input summary.json --output-dir feedback-draft-001
 | `openyida formula test <appType> <formUuid> [formula\|file] [--data-file file \| --cases file] [--field fieldId] [--timezone-offset minutes] [--context form\|validation] [--binding platform\|numeric-literals] [--expect JSON] [--json]` | 带入数据在宜搭试算公式并核对结果 |
 | `openyida update` | 检查并更新到最新版本 |
 | `openyida export-conversation [options]` | 导出 AI 对话记录 |
-| `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | 整理本地问题报告、配置反馈表单与提醒 |
+| `openyida feedback <report\|github\|url\|logs\|submit\|dismiss\|status> [options]` | 提交体验反馈、整理本地问题报告及管理提醒 |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | 批量执行 OpenYida 命令 |
 | `openyida ai <text\|image> [options]` | 调用 AI 文生文和识图能力 |
 | `openyida asset <status\|resolve\|sources> [options]` | 检测素材能力 / 解析回填素材 |

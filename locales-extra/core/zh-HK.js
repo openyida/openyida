@@ -303,7 +303,7 @@ module.exports = {
     cmd_formula_evaluate: '静态检查宜搭公式语法和字段引用',
     cmd_update: '檢查並更新到最新版本',
     cmd_export_conversation: '匯出 AI 對話記錄',
-    cmd_feedback: '整理本機問題報告、設定回饋表單與提醒',
+    cmd_feedback: '提交體驗回饋、整理本機問題報告及管理提醒',
     cmd_batch: '批量執行 OpenYida 命令',
     cmd_ai: '調用宜搭 AI 文生文和識圖能力',
     cmd_asset: '偵測素材能力 / 校驗圖片 URL / 解析回填素材',
@@ -2343,6 +2343,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "查看公式儲存
 Object.assign(module.exports.formula_v2, {"parallel_formula": "並行分支使用 conditions/rules 或 all:true；expression 目前只適用於 route 分支。"});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"公式結果轉成目標欄位後為空。日期請用 TIMESTAMP(日期公式)，並核對原值與欄位類型。","result_missing":"平台完成請求，但沒有返回目標欄位值。日期通常需要 TIMESTAMP(日期公式)。","conversion_partial":"結果只轉出部分數字或不是有限數值。請返回完整數字或毫秒時間戳。","target_branches":"公式可能返回 {0}，部分結果與 {1} 不相容；請逐一試算各分支。","date_timestamp":"日期物件與欄位保存值不同。通常用 TIMESTAMP(日期公式) 返回毫秒時間戳。","numeric_result_text":"公式可能返回文字；請用 --field 試算，核對是否轉成空值或部分數字。"});
+
+module.exports.feedback_intake = {
+  confirmation_required: '請先核對回饋內容，再使用 --confirm 提交。附檔案或環境資訊時請先用 --preview 取得審閱碼。',
+  setup_retired: '公開回饋表單的設定命令已停用。執行 openyida feedback url 查看目前的回饋入口。',
+  endpoint_invalid: '回饋入口需要有效的 HTTPS 宜搭環境。',
+  submitted: '回饋已提交，編號 {0}。',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: '請檢查回饋欄位。問題類型和描述必填，發生時間須使用帶時區的 ISO 8601 時間，診斷編號須使用 UUID。',
+  unauthenticated: '請以原帳戶和組織執行 openyida login，再使用原請求編號提交。',
+  feedback_blocked: '目前的帳戶無法提交回饋。',
+  feedback_not_enabled: '目前的組織尚未開放體驗回饋。',
+  idempotency_conflict: '該請求編號已用於不同內容。請核對原內容，或為新回饋使用新的請求編號。',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: '回饋提交過於頻密。請稍後使用原請求編號 {0} 和原內容重試。',
+  feedback_unavailable: '回饋服務暫時無法使用。請稍後使用原請求編號 {0} 和原內容重試。',
+  review_required: '請先用 --preview 核對清單，再用 --confirm --review-digest <審閱碼> 提交。內容變更後請重新預覽。',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: '請選擇可讀取的一般檔案。',
+  attachment_sensitive: '發現疑似憑據或憑據檔案。請移除憑據或選擇已遮蔽的副本。',
+  attachment_image: '請選擇 PNG 或 JPEG 截圖。',
+  attachment_log: '請選擇非空的 UTF-8 文字日誌，並保留相關片段。',
+  invalid_attachment: '伺服器拒絕附件。請核對檔案類型和內容。',
+  feedback_attachments_unavailable: '目前環境尚未開放附件提交。請稍後使用原請求編號和原內容重試。',
+};
 
 module.exports.feedback_report = {
   body: {

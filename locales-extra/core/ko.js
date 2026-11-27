@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: '최신 버전으로 업데이트',
     cmd_export_conversation: 'AI 대화 기록 내보내기',
-    cmd_feedback: '로컬 문제 보고서, 피드백 양식 및 알림 구성',
+    cmd_feedback: '피드백 제출, 로컬 보고서 작성 및 알림 관리',
     cmd_batch: 'OpenYida 명령 일괄 실행',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: '소재 기능 감지 / 이미지 URL 검증 / 소재 해결',
@@ -2381,6 +2381,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "수식 저장 형�
 Object.assign(module.exports.formula_v2, {"parallel_formula": "병렬 분기에는 conditions/rules 또는 all:true를 사용하세요. expression은 현재 route 분기에서만 지원됩니다."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"수식 결과가 대상 필드 변환 후 빈 값이 되었습니다. 날짜에는 TIMESTAMP(날짜 수식)를 사용하고 원래 값과 유형을 확인하세요.","result_missing":"요청은 완료되었지만 대상 필드 값이 없습니다. 날짜에는 일반적으로 TIMESTAMP(날짜 수식)가 필요합니다.","conversion_partial":"숫자가 일부만 변환되었거나 유한수가 아닙니다. 완전한 숫자나 밀리초 타임스탬프를 반환하세요.","target_branches":"반환 유형 {0} 중 일부는 {1}과 맞지 않습니다. 각 분기를 시험하세요.","date_timestamp":"날짜 객체와 저장 값은 다릅니다. 일반적으로 TIMESTAMP(날짜 수식)로 밀리초를 반환하세요.","numeric_result_text":"결과가 텍스트일 수 있습니다. --field로 각 분기의 빈 값과 부분 숫자 변환을 확인하세요."});
+
+module.exports.feedback_intake = {
+  confirmation_required: '내용을 검토한 뒤 --confirm을 사용하세요. 파일이나 환경 정보를 포함하려면 먼저 --preview를 사용하세요.',
+  setup_retired: '공개 피드백 양식 설정이 종료되었습니다. openyida feedback url로 현재 접수 방법을 확인하세요.',
+  endpoint_invalid: '피드백에는 유효한 HTTPS YiDA 환경이 필요합니다.',
+  submitted: '피드백이 접수되었습니다. 접수 번호 {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: '유형과 설명은 필수입니다. 발생 시각에는 시간대가 포함된 ISO 8601을, 진단 번호에는 UUID를 사용하세요.',
+  unauthenticated: '원래 계정과 조직으로 openyida login을 실행한 뒤 같은 요청 ID를 사용하세요.',
+  feedback_blocked: '이 계정은 피드백을 제출할 수 없습니다.',
+  feedback_not_enabled: '이 조직에는 아직 피드백이 열려 있지 않습니다.',
+  idempotency_conflict: '이 요청 ID는 다른 내용에 사용되었습니다. 원래 내용을 확인하거나 새 ID를 사용하세요.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: '피드백을 너무 자주 제출했습니다. 나중에 같은 내용과 요청 ID {0}으로 다시 시도하세요.',
+  feedback_unavailable: '피드백 서비스를 일시적으로 사용할 수 없습니다. 나중에 같은 내용과 요청 ID {0}으로 다시 시도하세요.',
+  review_required: '--preview로 목록을 확인한 뒤 --confirm --review-digest <코드>를 사용하세요. 내용이 바뀌면 다시 미리 보세요.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: '읽을 수 있는 일반 파일을 선택하세요.',
+  attachment_sensitive: '인증 정보나 인증 파일로 보입니다. 인증 정보를 지우거나 마스킹된 복사본을 선택하세요.',
+  attachment_image: 'PNG 또는 JPEG 스크린샷을 선택하세요.',
+  attachment_log: '비어 있지 않은 UTF-8 로그에서 관련 부분만 선택하세요.',
+  invalid_attachment: '서버에서 첨부 파일을 거부했습니다. 유형과 내용을 확인하세요.',
+  feedback_attachments_unavailable: '이 환경에서는 첨부 파일을 제출할 수 없습니다. 나중에 같은 요청 ID와 내용으로 다시 시도하세요.',
+};
 
 module.exports.feedback_report = {
   body: {

@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'Verificar y actualizar a la última versión',
     cmd_export_conversation: 'Exportar registros de conversación IA',
-    cmd_feedback: 'Preparar informes locales, formularios de comentarios y recordatorios',
+    cmd_feedback: 'Enviar comentarios, preparar informes locales y gestionar recordatorios',
     cmd_batch: 'Ejecutar comandos OpenYida en lote',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Detectar capacidad de materiales / verificar URLs de imágenes / resolver assets',
@@ -2382,6 +2382,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "Mostrar formatos d
 Object.assign(module.exports.formula_v2, {"parallel_formula": "Use conditions/rules o all:true para ramas paralelas; expression actualmente solo se admite en ramas route."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"La conversión al campo destino produjo un valor vacío. Para fechas, use TIMESTAMP(fórmula de fecha) y revise el valor original y el tipo.","result_missing":"La solicitud terminó sin un valor para el campo destino. Las fechas suelen necesitar TIMESTAMP(fórmula de fecha).","conversion_partial":"El valor se convirtió parcialmente o no es finito. Devuelva un número completo o milisegundos.","target_branches":"Algunos tipos de resultado {0} no coinciden con {1}. Pruebe cada rama.","date_timestamp":"Un objeto de fecha difiere del valor guardado. Use normalmente TIMESTAMP(fórmula de fecha) para obtener milisegundos.","numeric_result_text":"El resultado puede ser texto. Pruebe cada rama con --field para detectar valores vacíos o conversiones parciales."});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'Revisa el contenido y usa --confirm. Para incluir archivos o el entorno, usa primero --preview.',
+  setup_retired: 'Se ha retirado la configuración de formularios públicos. Ejecuta openyida feedback url para ver la vía actual.',
+  endpoint_invalid: 'Para enviar comentarios se requiere un entorno HTTPS válido de YiDA.',
+  submitted: 'Comentarios enviados. Número de referencia {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'El tipo y la descripción son obligatorios. Usa ISO 8601 con zona horaria para la fecha y un UUID para el diagnóstico.',
+  unauthenticated: 'Ejecuta openyida login con la cuenta y organización originales y usa el mismo identificador de solicitud.',
+  feedback_blocked: 'Esta cuenta no puede enviar comentarios.',
+  feedback_not_enabled: 'Los comentarios aún no están habilitados para esta organización.',
+  idempotency_conflict: 'Este identificador ya se usó con otro contenido. Revisa el contenido original o usa un identificador nuevo.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'Los envíos son demasiado frecuentes. Vuelve a intentarlo más tarde con el identificador {0} y el mismo contenido.',
+  feedback_unavailable: 'El servicio no está disponible temporalmente. Vuelve a intentarlo más tarde con el identificador {0} y el mismo contenido.',
+  review_required: 'Revisa la lista con --preview y usa --confirm --review-digest <código>. Vuelve a revisar si cambias el contenido.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'Elige un archivo normal que se pueda leer.',
+  attachment_sensitive: 'Puede contener credenciales. Elimínalas o selecciona una copia anonimizada.',
+  attachment_image: 'Elige una captura PNG o JPEG.',
+  attachment_log: 'Elige un extracto de registro en texto UTF-8 con las líneas relevantes.',
+  invalid_attachment: 'El servidor rechazó un adjunto. Revisa su tipo y contenido.',
+  feedback_attachments_unavailable: 'Los adjuntos no están disponibles en este entorno. Reintenta con la misma solicitud y contenido.',
+};
 
 module.exports.feedback_report = {
   body: {

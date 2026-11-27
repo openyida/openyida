@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'التحقق والتحديث إلى أحدث إصدار',
     cmd_export_conversation: 'تصدير سجلات محادثة الذكاء الاصطناعي',
-    cmd_feedback: 'إعداد تقارير محلية ونماذج الملاحظات والتذكيرات',
+    cmd_feedback: 'إرسال الملاحظات وإعداد التقارير المحلية وإدارة التذكيرات',
     cmd_batch: 'Run OpenYida commands in batch',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Detect asset capability / verify image URLs / resolve materials',
@@ -2382,6 +2382,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "عرض تنسيق�
 Object.assign(module.exports.formula_v2, {"parallel_formula": "استخدم conditions/rules أو all:true للفروع المتوازية؛ expression مدعوم حاليًا لفروع route فقط."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"أصبح الناتج فارغًا بعد تحويله إلى الحقل الهدف. للتواريخ استخدم TIMESTAMP(صيغة التاريخ) وتحقق من القيمة الأصلية والنوع.","result_missing":"اكتمل الطلب دون قيمة للحقل الهدف. تحتاج التواريخ عادة إلى TIMESTAMP(صيغة التاريخ).","conversion_partial":"تم تحويل جزء من القيمة فقط أو أنها ليست عددًا محدودًا. أرجع عددًا كاملًا أو طابعًا زمنيًا بالمللي ثانية.","target_branches":"بعض أنواع النتائج {0} لا تتوافق مع {1}. اختبر كل فرع.","date_timestamp":"كائن التاريخ يختلف عن القيمة المخزنة. استخدم عادة TIMESTAMP(صيغة التاريخ) للمللي ثانية.","numeric_result_text":"قد تكون النتيجة نصًا. اختبر كل فرع باستخدام --field للكشف عن التحويل الفارغ أو الجزئي."});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'راجع المحتوى ثم استخدم --confirm. استخدم --preview أولًا عند إرفاق ملفات أو معلومات البيئة.',
+  setup_retired: 'تم إيقاف إعداد النماذج العامة. شغّل openyida feedback url لمعرفة طريقة الإرسال الحالية.',
+  endpoint_invalid: 'تتطلب الملاحظات بيئة YiDA صالحة تستخدم HTTPS.',
+  submitted: 'تم إرسال الملاحظات. الرقم المرجعي {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'النوع والوصف مطلوبان. استخدم ISO 8601 مع منطقة زمنية لوقت الحدوث وUUID لمرجع التشخيص.',
+  unauthenticated: 'شغّل openyida login بالحساب والمؤسسة الأصليين، ثم استخدم رقم الطلب الأصلي.',
+  feedback_blocked: 'لا يمكن لهذا الحساب إرسال ملاحظات.',
+  feedback_not_enabled: 'الملاحظات غير متاحة لهذه المؤسسة بعد.',
+  idempotency_conflict: 'استُخدم رقم الطلب لمحتوى آخر. تحقق من المحتوى الأصلي أو استخدم رقماً جديداً.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'محاولات الإرسال متكررة جداً. حاول لاحقاً بالرقم {0} والمحتوى نفسه.',
+  feedback_unavailable: 'خدمة الملاحظات غير متاحة مؤقتاً. حاول لاحقاً بالرقم {0} والمحتوى نفسه.',
+  review_required: 'راجع القائمة باستخدام --preview ثم استخدم --confirm --review-digest <الرمز>. أعد المعاينة إذا تغيّر المحتوى.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'اختر ملفًا عاديًا قابلًا للقراءة.',
+  attachment_sensitive: 'عُثر على بيانات اعتماد محتملة. أزلها أو اختر نسخة محجوبة.',
+  attachment_image: 'اختر لقطة شاشة بتنسيق PNG أو JPEG.',
+  attachment_log: 'اختر مقتطف سجل نصيًا غير فارغ بترميز UTF-8 يقتصر على الأسطر المعنية.',
+  invalid_attachment: 'رفض الخادم مرفقًا. تحقق من نوعه ومحتواه.',
+  feedback_attachments_unavailable: 'المرفقات غير متاحة في هذه البيئة. أعد المحاولة لاحقًا باستخدام الطلب والمحتوى نفسيهما.',
+};
 
 module.exports.feedback_report = {
   body: {

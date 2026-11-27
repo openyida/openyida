@@ -311,12 +311,12 @@ openyida copy
 | \`yida-skills/analytics\` | 用户显式指定宜搭原生数据卡片；报表、统计、图表、Recharts、ECharts、看板、驾驶舱；报表转原生大屏并对照 | \`yida-data-card\`, \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\`, \`yida-datav\`, \`report-to-native-datav\` |
 | \`yida-skills/integration\` | 明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、数据源、集成自动化 | \`yida-cool-card\`, \`yida-integration\`, \`yida-dingtalk-openapi\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |
 | \`yida-skills/access\` | 平台/应用/表单/页面权限、公开访问、分享 | \`yida-corp-manager\`, \`yida-app-permission\`, \`yida-form-permission\`, \`yida-page-config\` |
-| \`yida-skills/ops\` | Sequence、VOC、OpenYida 故障、Issue/Fork PR | \`yida-db-seq-fix\`, \`yida-voc\`, \`yida-feedback\` |
+| \`yida-skills/ops\` | Sequence、VOC、OpenYida 宜搭反馈、Issue/Fork PR | \`yida-db-seq-fix\`, \`yida-voc\`, \`yida-feedback\` |
 | \`yida-skills/agent\` | 导出对话、读取钉钉文档/听记、会议纪要/闪记转 PRD | \`yida-export-conversation\`, \`yida-document-markdown\`, \`yida-tingji\`, \`yida-flash-note-to-prd\` |
 
 ## 本地使用问题反馈
 
-OpenYida 反复报错、不会提 Issue/PR、没有 GitHub 账号或源码时加载 \`yida-feedback\`，先整理脱敏本地报告；外部提交按用户授权执行，修复贡献通过个人 Fork。普通宜搭 VOC 清单用 \`yida-voc\`。
+OpenYida 故障、体验建议或修复贡献加载 \`yida-feedback\`，普通反馈默认提交宜搭，无需 GitHub 账号。Agent 整理，客户确认后提交；仅在用户明确选择公开贡献时走 GitHub。宜搭 VOC 清单用 \`yida-voc\`。
 
 ## 执行规则
 

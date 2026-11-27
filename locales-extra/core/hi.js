@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'नवीनतम संस्करण में अपडेट करें',
     cmd_export_conversation: 'AI वार्तालाप रिकॉर्ड निर्यात करें',
-    cmd_feedback: 'स्थानीय समस्या रिपोर्ट, फ़ीडबैक फ़ॉर्म और रिमाइंडर तैयार करें',
+    cmd_feedback: 'फ़ीडबैक भेजें, स्थानीय रिपोर्ट तैयार करें और रिमाइंडर प्रबंधित करें',
     cmd_batch: 'Run OpenYida commands in batch',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: 'Detect asset capability / verify image URLs / resolve materials',
@@ -2380,6 +2380,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "फ़ॉर्म
 Object.assign(module.exports.formula_v2, {"parallel_formula": "समानांतर शाखाओं में conditions/rules या all:true उपयोग करें; expression अभी केवल route शाखाओं में समर्थित है।"});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"लक्ष्य फ़ील्ड में बदलने के बाद परिणाम खाली है। तारीख के लिए TIMESTAMP(तारीख सूत्र) का उपयोग करके मूल मान और प्रकार जाँचें।","result_missing":"अनुरोध पूरा हुआ लेकिन लक्ष्य फ़ील्ड का मान नहीं मिला। तारीख के लिए सामान्यतः TIMESTAMP(तारीख सूत्र) चाहिए।","conversion_partial":"मान का केवल कुछ भाग संख्या बना या वह सीमित संख्या नहीं है। पूरी संख्या या मिलीसेकंड टाइमस्टैम्प लौटाएँ।","target_branches":"परिणाम के कुछ प्रकार {0}, {1} से मेल नहीं खाते। हर शाखा का परीक्षण करें।","date_timestamp":"तारीख ऑब्जेक्ट और सहेजा गया मान अलग हैं। सामान्यतः TIMESTAMP(तारीख सूत्र) से मिलीसेकंड लौटाएँ।","numeric_result_text":"परिणाम टेक्स्ट हो सकता है। खाली या आंशिक संख्या रूपांतरण पहचानने के लिए हर शाखा को --field से जाँचें।"});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'सामग्री जाँचकर --confirm दें। फ़ाइल या परिवेश जानकारी जोड़ने से पहले --preview चलाएँ।',
+  setup_retired: 'सार्वजनिक फ़ॉर्म सेटअप बंद हो गया है। मौजूदा तरीका देखने के लिए openyida feedback url चलाएँ।',
+  endpoint_invalid: 'फ़ीडबैक के लिए मान्य HTTPS YiDA परिवेश आवश्यक है।',
+  submitted: 'फ़ीडबैक भेज दिया गया। संदर्भ संख्या {0}।',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'प्रकार और विवरण आवश्यक हैं। घटना समय के लिए समय क्षेत्र सहित ISO 8601 और निदान के लिए UUID दें।',
+  unauthenticated: 'मूल खाते और संगठन से openyida login चलाएँ, फिर वही अनुरोध आईडी उपयोग करें।',
+  feedback_blocked: 'इस खाते से फ़ीडबैक नहीं भेजा जा सकता।',
+  feedback_not_enabled: 'इस संगठन के लिए फ़ीडबैक अभी उपलब्ध नहीं है।',
+  idempotency_conflict: 'यह अनुरोध आईडी दूसरी सामग्री के लिए उपयोग हुई थी। मूल सामग्री जाँचें या नई आईडी उपयोग करें।',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'फ़ीडबैक बहुत जल्दी-जल्दी भेजा जा रहा है। बाद में आईडी {0} और उसी सामग्री से प्रयास करें।',
+  feedback_unavailable: 'फ़ीडबैक सेवा अस्थायी रूप से अनुपलब्ध है। बाद में आईडी {0} और उसी सामग्री से प्रयास करें।',
+  review_required: '--preview से सूची जाँचें और --confirm --review-digest <कोड> दें। बदलाव होने पर फिर पूर्वावलोकन करें।',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'पढ़ी जा सकने वाली सामान्य फ़ाइल चुनें।',
+  attachment_sensitive: 'संभावित क्रेडेंशियल मिले। उन्हें हटाएँ या छिपाई हुई प्रति चुनें।',
+  attachment_image: 'PNG या JPEG स्क्रीनशॉट चुनें।',
+  attachment_log: 'संबंधित पंक्तियों वाला गैर-खाली UTF-8 टेक्स्ट लॉग चुनें।',
+  invalid_attachment: 'सर्वर ने संलग्नक अस्वीकार किया। उसका प्रकार और सामग्री जाँचें।',
+  feedback_attachments_unavailable: 'इस परिवेश में संलग्नक उपलब्ध नहीं हैं। उसी अनुरोध आईडी और सामग्री के साथ बाद में फिर प्रयास करें।',
+};
 
 module.exports.feedback_report = {
   body: {

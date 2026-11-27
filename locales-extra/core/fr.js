@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: 'Vérifier et mettre à jour vers la dernière version',
     cmd_export_conversation: 'Exporter les enregistrements de conversation IA',
-    cmd_feedback: 'Préparer les rapports locaux, formulaires de retour et rappels',
+    cmd_feedback: 'Envoyer un retour, préparer des rapports locaux et gérer les rappels',
     cmd_batch: 'Exécuter des commandes OpenYida en lot',
     cmd_ai: 'Call Yida AI text and image recognition APIs',
     cmd_asset: "Détecter les capacités de ressources / vérifier les URL d'images / résoudre les assets",
@@ -2382,6 +2382,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "Afficher les forma
 Object.assign(module.exports.formula_v2, {"parallel_formula": "Utilisez conditions/rules ou all:true pour les branches parallèles ; expression est actuellement réservé aux branches route."});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"La conversion vers le champ cible donne une valeur vide. Pour une date, utilisez TIMESTAMP(formule de date) et vérifiez la valeur brute et le type.","result_missing":"La requête est terminée, mais la valeur du champ cible manque. Une date nécessite généralement TIMESTAMP(formule de date).","conversion_partial":"La valeur est partiellement numérique ou non finie. Renvoyez un nombre complet ou un horodatage en millisecondes.","target_branches":"Certains types de résultat {0} ne correspondent pas à {1}. Testez chaque branche.","date_timestamp":"Un objet date diffère de la valeur stockée. Utilisez généralement TIMESTAMP(formule de date) pour les millisecondes.","numeric_result_text":"Le résultat peut être du texte. Testez chaque branche avec --field pour détecter une conversion vide ou partielle."});
+
+module.exports.feedback_intake = {
+  confirmation_required: 'Vérifiez le contenu puis utilisez --confirm. Pour joindre des fichiers ou des informations sur l’environnement, utilisez d’abord --preview.',
+  setup_retired: 'La création de formulaires publics est désactivée. Exécutez openyida feedback url pour trouver le point d’accès actuel.',
+  endpoint_invalid: 'Le service de retour nécessite un environnement YiDA HTTPS valide.',
+  submitted: 'Retour envoyé. Référence {0}.',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: 'Le type et la description sont requis. Utilisez ISO 8601 avec fuseau horaire pour la date et un UUID pour le diagnostic.',
+  unauthenticated: 'Exécutez openyida login avec le compte et l’organisation d’origine, puis réutilisez le même identifiant de demande.',
+  feedback_blocked: 'Ce compte ne peut pas envoyer de retour.',
+  feedback_not_enabled: 'Les retours ne sont pas encore disponibles pour cette organisation.',
+  idempotency_conflict: 'Cet identifiant correspond à un autre contenu. Vérifiez le contenu initial ou utilisez un nouvel identifiant.',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: 'Les envois sont trop fréquents. Réessayez plus tard avec le même contenu et l’identifiant {0}.',
+  feedback_unavailable: 'Le service est temporairement indisponible. Réessayez plus tard avec le même contenu et l’identifiant {0}.',
+  review_required: 'Vérifiez avec --preview puis utilisez --confirm --review-digest <code>. Répétez la vérification si le contenu change.',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: 'Choisissez un fichier ordinaire lisible.',
+  attachment_sensitive: 'Identifiants ou fichier d’identifiants possibles. Retirez-les ou choisissez une copie expurgée.',
+  attachment_image: 'Choisissez une capture PNG ou JPEG.',
+  attachment_log: 'Choisissez un extrait pertinent de journal non vide en texte UTF-8.',
+  invalid_attachment: 'Le serveur a refusé une pièce jointe. Vérifiez son type et son contenu.',
+  feedback_attachments_unavailable: 'Les pièces jointes sont indisponibles ici. Réessayez plus tard avec la même demande et le même contenu.',
+};
 
 module.exports.feedback_report = {
   body: {

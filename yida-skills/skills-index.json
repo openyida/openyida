@@ -1839,7 +1839,7 @@
       "name": "yida-feedback",
       "path": "skills/yida-feedback/SKILL.md",
       "display_name": "OpenYida 问题反馈与修复贡献",
-      "description": "本地使用故障根因分析和脱敏报告，无 GitHub 账号/源码也可整理；按授权提交 Issue 或从个人 Fork 贡献公开修复。",
+      "description": "OpenYida 故障与建议默认提交宜搭，无需 GitHub 账号。用户明确选择公开贡献时走 Issue 或个人 Fork PR。",
       "category": "yida-skills/ops",
       "tags": [
         "OpenYida故障",

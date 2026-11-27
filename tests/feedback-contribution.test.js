@@ -99,6 +99,50 @@ test('fails before posting on read errors; uncertain writes are reconciled on re
   expect(github.rest.issues.createComment).toHaveBeenCalledTimes(1);
 });
 
+test('ordinary feedback uses YiDA without a GitHub account across skill entry points', () => {
+  const dir = 'yida-skills/skills/yida-feedback';
+  const index = JSON.parse(read('yida-skills/skills-index.json')).skills.find(skill => skill.name === 'yida-feedback');
+  for (const entry of [read('yida-skills/SKILL.md'), read('scripts/postinstall.js'), index.description, read(`${dir}/SKILL.md`)]) {
+    expect(entry).toMatch(/默认提交宜搭[，。]无需 GitHub 账号/);
+    expect(entry).not.toContain('无账号先引导注册');
+  }
+  const routing = read(`${dir}/SKILL.md`).split('\n').find(line => line.startsWith('| [用户交互]'));
+  expect(routing).toContain('仅在用户明确选择 GitHub');
+});
+
+test('the feedback template puts affected resource IDs in the existing reproduction field', () => {
+  const skill = read('yida-skills/skills/yida-feedback/SKILL.md');
+  const example = JSON.parse(skill.match(/\x60\x60\x60json\n([^\n]+)\n\x60\x60\x60/)[1]);
+  expect(example.reproduction).toMatch(/^关联资源\nappType=APP_/);
+  expect(example.reproduction).toContain('formUuid=FORM-');
+  expect(example.reproduction).toContain('应用链接=https://');
+  for (const field of ['processCode', 'procInstId', 'cardCode', 'cardPageCode', 'cardTemplateId']) {
+    expect(skill).toContain(`\`${field}\``);
+  }
+  expect(skill).toMatch(/免登公开表单[^。]*关联资源/);
+});
+
+test('visual evidence is offered explicitly and the reviewed log snapshot stays optional', () => {
+  const skill = read('yida-skills/skills/yida-feedback/SKILL.md');
+  expect(skill).toContain('「补截图」或「按当前清单直接提交」');
+  expect(skill).toMatch(/选直接提交即确认当前清单[^；]*不再追问/);
+  expect(skill).toMatch(/选补截图则等用户[^。]*重新预览后确认/);
+  expect(skill).toMatch(/已选图或明确跳过[^。]*不再问截图/);
+  expect(skill).toMatch(/浏览器未登录[^。]*无需为截图登录/);
+  expect(skill).toContain('未回答不提交');
+  expect(skill).toContain('当前免登表没有附件控件');
+  expect(skill).toContain('在原业务命令的工作目录执行导出');
+  expect(skill).toMatch(/openyida feedback logs --since \S+ --until \S+ --output <本次UUID目录>\/excerpt\.jsonl --json/);
+  expect(skill).toContain('--command-id');
+  expect(skill).toMatch(/仅本次 .status=exported. 才把返回的 .output./);
+  expect(skill).toMatch(/no_records. 或失败不得复用同名旧文件/);
+  const submissions = skill.split('\n').filter(line => line.startsWith('openyida feedback submit'));
+  expect(submissions).toHaveLength(2);
+  expect(submissions.every(line => line.includes('--log "excerpt.jsonl"'))).toBe(true);
+  expect(skill).toContain('允许用户移除');
+  expect(skill).toContain('无本地日志');
+});
+
 test('beginner guidance preserves consent, public-source boundaries and optional PR paths', () => {
   const interaction = read('yida-skills/skills/yida-feedback/references/user-interaction.md');
   for (const rule of ['仅在 Issue 创建成功且读回完整后', '用户已拒绝贡献时跳过', '用户未回答时', '只读分析', 'reviewDigest', '个人 Fork']) {

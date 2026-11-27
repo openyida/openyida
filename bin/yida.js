@@ -1432,7 +1432,7 @@ async function dispatchCommand() {
   }
 }
 
-main()
+require('../lib/core/command-context').trackCommand(command, main)
   .then(() => { commandReceipt.finish(process.exitCode || 0); })
   .catch((err) => {
     try {commandReceipt?.finish(err && err.exitCode ? err.exitCode : 1);} catch { /* Intent remains recoverable. */ }

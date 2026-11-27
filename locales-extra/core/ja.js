@@ -294,7 +294,7 @@ module.exports = {
     cmd_formula_evaluate: 'Static-check Yida formula syntax and field refs',
     cmd_update: '最新バージョンに更新',
     cmd_export_conversation: 'AI 会話記録をエクスポート',
-    cmd_feedback: 'ローカル問題レポート、フィードバックフォームと通知を設定',
+    cmd_feedback: 'フィードバックの送信、ローカル報告の作成、通知の管理',
     cmd_batch: 'OpenYida コマンドを一括実行',
     cmd_ai: 'Yida AI text and image recognition APIs',
     cmd_asset: '素材能力の検出 / 画像URLの検証 / 素材の解決',
@@ -2309,6 +2309,31 @@ Object.assign(module.exports.help, {"cmd_formula_contracts": "数式の保存形
 Object.assign(module.exports.formula_v2, {"parallel_formula": "並列分岐には conditions/rules または all:true を使用してください。expression は現在 route 分岐のみ対応しています。"});
 
 Object.assign(module.exports.formula_v2, {"conversion_empty":"式の結果が対象フィールドへの変換で空になりました。日付は TIMESTAMP(日付式) を使い、元の値と型を確認してください。","result_missing":"リクエストは完了しましたが、対象フィールドの値がありません。日付には通常 TIMESTAMP(日付式) が必要です。","conversion_partial":"数値の一部だけが解析されたか、有限数ではありません。完全な数値またはミリ秒タイムスタンプを返してください。","target_branches":"結果の型 {0} の一部は {1} に適合しません。各分岐を試算してください。","date_timestamp":"日付オブジェクトと保存値は異なります。通常は TIMESTAMP(日付式) でミリ秒を返します。","numeric_result_text":"結果が文字列になる場合があります。--field で各分岐を試算し、空値や部分的な数値変換を確認してください。"});
+
+module.exports.feedback_intake = {
+  confirmation_required: '内容を確認して --confirm を付けてください。ファイルや環境情報を含める場合は先に --preview を実行してください。',
+  setup_retired: '公開フォームの設定機能は終了しました。openyida feedback url で現在の窓口を確認してください。',
+  endpoint_invalid: 'フィードバックには有効な HTTPS の YiDA 環境が必要です。',
+  submitted: 'フィードバックを送信しました。受付番号は {0} です。',
+  pending: 'Feedback is pending. Keep request ID {0} and check its receipt before submitting again.',
+  outcome_unknown: 'The submission result is unknown. Keep request ID {0} and the original content, then check its receipt before submitting again.',
+  invalid_request: '種類と説明は必須です。発生日時はタイムゾーン付き ISO 8601、診断 ID は UUID で指定します。',
+  unauthenticated: '元のアカウントと組織で openyida login を実行し、同じリクエスト ID で送信してください。',
+  feedback_blocked: 'このアカウントはフィードバックを送信できません。',
+  feedback_not_enabled: 'この組織ではフィードバックがまだ有効になっていません。',
+  idempotency_conflict: 'このリクエスト ID は異なる内容で使用済みです。元の内容を確認するか、新しい ID を使用してください。',
+  request_too_large: 'Feedback text can be up to 16 KiB and the complete JSON request up to 6 MiB.',
+  rate_limited: '送信回数が上限に達しました。時間をおいて同じ内容とリクエスト ID {0} で再試行してください。',
+  feedback_unavailable: 'フィードバックサービスは一時的に利用できません。時間をおいて同じ内容とリクエスト ID {0} で再試行してください。',
+  review_required: '--preview で内容を確認し、--confirm --review-digest <コード> を指定してください。変更後は再度プレビューしてください。',
+  attachment_limit: 'Select up to three screenshots and one log. Each screenshot can be up to 2 MiB, the log up to 512 KiB, and all evidence up to 4 MiB. Gzip logs must also decompress to at most 512 KiB.',
+  attachment_file: '読み取り可能な通常ファイルを選択してください。',
+  attachment_sensitive: '認証情報または認証情報ファイルの可能性があります。該当箇所を削除するか、伏字にしたコピーを選んでください。',
+  attachment_image: 'PNG または JPEG のスクリーンショットを選択してください。',
+  attachment_log: '空でない UTF-8 テキストログを選択してください。関連する箇所に絞ってください。',
+  invalid_attachment: '添付ファイルがサーバーで拒否されました。種類と内容を確認してください。',
+  feedback_attachments_unavailable: 'この環境では添付を送信できません。同じリクエスト ID と内容で後で再試行してください。',
+};
 
 module.exports.feedback_report = {
   body: {

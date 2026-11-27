@@ -467,13 +467,15 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 ### Report a problem or contribute a fix
 
-Tell your AI: “OpenYida keeps failing. Analyze the cause and prepare feedback.” You can prepare a redacted report and reproduction steps without a GitHub account or a local source checkout. Preparing a report does not submit it.
+Ask your agent to report the issue. It shows the affected app or page, a description and any selected files. For visual issues, you can add a screenshot or submit the preview as shown. You can remove the diagnostic log before confirming. The agent submits using your YiDA login and returns a feedback ID. If you cannot log in, run `openyida feedback url` to open the public login-issues form. [Feedback skill](yida-skills/skills/yida-feedback/SKILL.md)
+
+For an offline draft:
 
 ```bash
 openyida feedback report --input summary.json --output-dir feedback-draft-001
 ```
 
-Your AI prepares the summary from observed evidence and selected reproduction screenshots. PRs include before/after test comparisons. Before anything is published, review the final text and images, confirm sensitive information, and remove anything you do not want to share. See the [report input format](yida-skills/skills/yida-feedback/references/report-input.md). Review business information before sharing. With a GitHub account, authorize your AI to submit an Issue or contribute a verified public OpenYida fix through your personal Fork. Without an account, create a GitHub account first. If that is not possible, share the report in the AI开发者群 (AI developer group).
+Your AI prepares the summary from observed evidence and selected reproduction screenshots. PRs include before/after test comparisons. Before anything is published, review the final text and images, confirm sensitive information, and remove anything you do not want to share. See the [report input format](yida-skills/skills/yida-feedback/references/report-input.md). Review business information before sharing. With a GitHub account, authorize your AI to submit an Issue or contribute a verified public OpenYida fix through your personal Fork. The YiDA feedback flow above is available without a GitHub account.
 
 To configure a submission tool, your AI can first run `openyida feedback github setup --json` to check gh and the current account. After you approve the installation plan, it can run `openyida feedback github setup --install --confirm --json`, using existing Homebrew on macOS/Linux or WinGet on Windows. Without a supported manager, official instructions or the web remain available. Browser authorization is a separate step performed by you; installation does not log you in, request passwords or tokens, or replace public-content approval. Resume the original draft after setup. See the [account and tool guide](yida-skills/skills/yida-feedback/references/github-setup.md).
 
@@ -676,7 +678,7 @@ When preparing a PR that needs a personal Fork, or when you ask how to support t
 | `openyida formula test <appType> <formUuid> [formula\|file] [--data-file file \| --cases file] [--field fieldId] [--timezone-offset minutes] [--context form\|validation] [--binding platform\|numeric-literals] [--expect JSON] [--json]` | Evaluate a non-writing formula in Yida and compare its result |
 | `openyida update` | Check and update to latest version |
 | `openyida export-conversation [options]` | Export AI conversation records |
-| `openyida feedback <report\|github\|setup\|url\|dismiss\|status> [options]` | Prepare local issue reports, configure feedback forms and reminders |
+| `openyida feedback <report\|github\|url\|logs\|submit\|dismiss\|status> [options]` | Submit feedback, prepare local issue reports and manage reminders |
 | `openyida batch <file>\|--commands "cmd1 ; cmd2" [--concurrency 1..4] [--stop-on-error] [--json]` | Run OpenYida commands in batch |
 | `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
 | `openyida asset <status\|resolve\|sources> [options]` | Detect asset capability / resolve materials |
