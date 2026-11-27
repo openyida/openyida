@@ -2559,3 +2559,9 @@ module.exports.data_verify = {
   "readback_failed": "Escritura aceptada, pero no se verificó la lectura. Revise el registro existente; no repita la escritura.",
   "mismatch": "Escritura aceptada, pero los campos leídos difieren de los datos enviados."
 };
+
+module.exports.data_clear = {
+  preflight_failed: "No se pueden vaciar las fechas de forma segura. Compruebe la validación, la versión original y el registro. Envíe el vaciado de fechas principales por separado de otros cambios y actualizaciones de versión.",
+  write_unverified: "El resultado del vaciado de fechas no está confirmado. Lea el registro existente antes de intentar otra escritura.",
+  readback_mismatch: "No se pudo verificar el vaciado, o cambió otro campo legible o la versión del formulario. Revise el registro existente; no repita la escritura.",
+};

@@ -2557,3 +2557,9 @@ module.exports.data_verify = {
   "readback_failed": "Đã chấp nhận ghi nhưng chưa xác minh được dữ liệu đọc lại. Kiểm tra bản ghi hiện có; không ghi lại.",
   "mismatch": "Đã chấp nhận ghi nhưng các trường đọc lại khác với dữ liệu đã gửi."
 };
+
+module.exports.data_clear = {
+  preflight_failed: "Không thể xóa giá trị ngày an toàn. Kiểm tra quy tắc xác thực, phiên bản gốc và bản ghi. Gửi thao tác xóa ngày ở bảng chính riêng với các cập nhật khác và nâng cấp phiên bản.",
+  write_unverified: "Chưa xác nhận kết quả xóa ngày. Đọc lại bản ghi hiện có trước khi thử ghi lần nữa.",
+  readback_mismatch: "Không thể xác minh việc xóa ngày, hoặc trường khác có thể đọc hay phiên bản biểu mẫu đã thay đổi. Kiểm tra bản ghi hiện có; không ghi lại.",
+};

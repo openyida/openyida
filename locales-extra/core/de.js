@@ -2557,3 +2557,9 @@ module.exports.data_verify = {
   "readback_failed": "Schreiben akzeptiert, Rücklesen jedoch nicht verifiziert. Prüfen Sie den vorhandenen Datensatz; wiederholen Sie das Schreiben nicht.",
   "mismatch": "Schreiben akzeptiert, aber die zurückgelesenen Felder unterscheiden sich von den gesendeten Daten."
 };
+
+module.exports.data_clear = {
+  preflight_failed: "Datumsfelder können nicht sicher geleert werden. Prüfen Sie Validierung, ursprüngliche Version und Datensatz. Leeren Sie Datumsfelder der Haupttabelle getrennt von anderen Änderungen und Versionswechseln.",
+  write_unverified: "Das Leeren der Datumsfelder ist nicht bestätigt. Lesen Sie den vorhandenen Datensatz vor einem weiteren Schreibversuch zurück.",
+  readback_mismatch: "Das Leeren konnte nicht bestätigt werden, oder ein anderes lesbares Feld bzw. die Formularversion hat sich geändert. Prüfen Sie den Datensatz und wiederholen Sie das Schreiben nicht.",
+};

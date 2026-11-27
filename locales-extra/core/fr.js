@@ -2559,3 +2559,9 @@ module.exports.data_verify = {
   "readback_failed": "Écriture acceptée, mais relecture non vérifiée. Contrôlez le dossier existant sans répéter l’écriture.",
   "mismatch": "Écriture acceptée, mais les champs relus diffèrent des données envoyées."
 };
+
+module.exports.data_clear = {
+  preflight_failed: "Impossible de vider les dates en toute sécurité. Vérifiez la validation, la version initiale et le dossier. Envoyez la suppression des dates principales séparément des autres modifications et des mises à niveau.",
+  write_unverified: "Le résultat de la suppression des dates est non confirmé. Relisez le dossier existant avant toute nouvelle écriture.",
+  readback_mismatch: "La suppression des dates ne peut pas être vérifiée, ou un autre champ lisible ou la version du formulaire a changé. Vérifiez le dossier existant sans répéter l’écriture.",
+};

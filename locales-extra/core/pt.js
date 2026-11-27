@@ -2559,3 +2559,9 @@ module.exports.data_verify = {
   "readback_failed": "Gravação aceita, mas a leitura não foi verificada. Confira o registro existente; não repita a gravação.",
   "mismatch": "Gravação aceita, mas os campos lidos diferem dos dados enviados."
 };
+
+module.exports.data_clear = {
+  preflight_failed: "Não é possível limpar as datas com segurança. Verifique a validação, a versão original e o registro. Limpe as datas principais separadamente de outras alterações e atualizações de versão.",
+  write_unverified: "O resultado da limpeza das datas não foi confirmado. Leia o registro existente antes de tentar outra gravação.",
+  readback_mismatch: "Não foi possível verificar a limpeza, ou outro campo legível ou a versão do formulário mudou. Confira o registro existente; não repita a gravação.",
+};

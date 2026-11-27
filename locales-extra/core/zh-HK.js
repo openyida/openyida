@@ -2520,3 +2520,9 @@ module.exports.data_verify = {
   "readback_failed": "寫入已獲接受，但無法驗證回讀結果。請核實現有實例，勿重複寫入。",
   "mismatch": "寫入已獲接受，但回讀欄位與提交內容不一致。"
 };
+
+module.exports.data_clear = {
+  preflight_failed: "無法安全清空日期欄位。請核對欄位校驗、原版本與記錄資料；主表日期清空須單獨提交，不能同時更新其他欄位或升級版本。",
+  write_unverified: "日期清空結果尚未確認。請回讀原記錄，勿重複提交。",
+  readback_mismatch: "日期清空回讀不一致，或其他可讀欄位、表單版本發生變化。請核對原記錄，勿重複提交。",
+};
