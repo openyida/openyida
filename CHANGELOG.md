@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.27-beta.1] - 2026-11-27
+
+- 修复全码工作台送测时无法识别测试版本的问题。使用版本接口确认测试版本并保存构建绑定，返回服务端实际预览地址；已上传的匹配构建可直接复用。
+- 明确普通宜搭应用与全码工作台的两条搭建路径。显式全码请求直接使用 `yida-code-workspace`，普通应用继续使用 `yida-app`；精简总入口描述，具体分流规则放在正文。
+- 沿用 `https://davidtest.aliwork.com` 默认测试环境。送测后在浏览器验收页面，正式发布仍需确认。
+
 ## [2026.11.27-beta.0] - 2026-11-27
 
 - 提供全码工作台测试流程，可创建 WORKSPACE 应用、拉取初始化 React 工程，并通过 `code-workspace sync-test` 保存、编译和更新固定测试地址，供千问办公验证 Hello World 生成流程。

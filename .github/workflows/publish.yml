@@ -48,6 +48,14 @@ jobs:
         tests/code-workspace-page-binding.test.js
         tests/code-workspace-layout-samples.test.js
         tests/package-smoke.test.js
+        tests/skill-contracts.test.js
+        tests/skill-routing-hygiene.test.js
+        tests/eval-routing.test.js
+        tests/create-app.test.js
+        tests/create-app-entry-urls.test.js
+        tests/publish-args.test.js
+        tests/publish-precheck.test.js
+        tests/canvas-compile.test.js
 
   publish:
     name: Publish to npm & Create Release
