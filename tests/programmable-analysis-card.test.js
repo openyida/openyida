@@ -115,7 +115,6 @@ test('analysis schema retains native formula and date grain alongside editable d
   expect(result.node.componentName).toBe('YoushuAnalysisCard');
   expect(result.node.props.settings).toMatchObject({ renderCard });
   expect(result.node.props.settings.view).toBeUndefined();
-  expect(buildChartNode({ type: 'analysis', cubeCode: 'FORM_TEST', view: 'bar', xField: { fieldCode: 'category' }, yField: [{ fieldCode: 'amount', aggregateType: 'SUM' }] }).node.props.settings.view).toBe('bar');
   const definitions = result.node.props.dataSetModelMap.chartData.dataViewQueryModel.fieldDefinitionList;
   expect(definitions[0]).toMatchObject({ timeGranularityType: 'MONTH' });
   expect(definitions[1]).toMatchObject({ expression: 'SUM(amount)' });
@@ -137,7 +136,12 @@ test('live Canvas template delegates queries and native card references to the i
 });
 
 
-test('CLI generates an ECharts source with theme, original-row actions and cleanup', async () => {
+test.each([
+  [{ '--pod-chart-colors': 'rgb(1, 2, 3), color-mix(in oklab, rgb(4, 5, 6) 50%, #fff)', '--color-group': '#fff, #000' },
+    ['rgb(1, 2, 3)', 'color-mix(in oklab, rgb(4, 5, 6) 50%, #fff)']],
+  [{ '--color-group': '#123456, rgba(8, 9, 10, 0.5)' }, ['#123456', 'rgba(8, 9, 10, 0.5)']],
+  [{ '--color-brand1-6': '#123456' }, ['#123456', '#3471ea', '#a55bf5', '#da66c3', '#fc7d29', '#ffbc20']],
+])('CLI ECharts source follows theme palette %j, original-row actions and cleanup', async (tokens, palette) => {
   const button = (tree, label) => find(tree, 'button').find(node => node.children.includes(label));
   const os = require('os');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-analysis-card-'));
@@ -163,9 +167,9 @@ test('CLI generates an ECharts source with theme, original-row actions and clean
     new Function('require', 'module', 'exports', renderCard.runtimeCode)(
       name => ({ react, echarts })[name], reportModule, reportModule.exports);
     const Component = reportModule.exports.default;
-    const row = { label: 'raw-region', value: 30000 };
+    const row = { label: 'raw-region', value: 30000, cost: 10000 };
     const analysis = { rows: [row], displayRows: [{ label: '华东' }],
-      columns: [{ key: 'label' }, { key: 'value', numeric: true }],
+      columns: [{ key: 'label' }, { key: 'value', numeric: true }, { key: 'cost', numeric: true }],
       appearance: { echartsLegend: { itemWidth: 22 } }, canDrill: true, select: jest.fn(), details: jest.fn(), refresh: jest.fn() };
     const card = Component({ analysis });
     button(card, '刷新').props.onClick();
@@ -176,12 +180,12 @@ test('CLI generates an ECharts source with theme, original-row actions and clean
     expect(button(content, '下钻').props.disabled).toBe(true);
     const priorStyle = global.getComputedStyle;
     const priorWindow = global.window;
-    global.getComputedStyle = () => ({ getPropertyValue: () => '#123456' });
+    global.getComputedStyle = () => ({ getPropertyValue: name => tokens[name] || '' });
     global.window = { addEventListener: jest.fn(), removeEventListener: jest.fn() };
     try {
       const cleanup = effects[0]();
-      expect(instance.setOption.mock.calls[0][0]).toMatchObject({ color: ['#123456'],
-        xAxis: { data: ['华东'] }, legend: { itemWidth: 22 }, series: [{ data: [30000] }] });
+      expect(instance.setOption.mock.calls[0][0]).toMatchObject({ color: palette,
+        xAxis: { data: ['华东'] }, legend: { itemWidth: 22 }, series: [{ data: [30000] }, { data: [10000] }] });
       instance.on.mock.calls[0][1]({ componentType: 'series', dataIndex: 0 });
       cursor = 0;
       content = child.type(child.props);
@@ -219,4 +223,11 @@ test('unauthored analysis cards do not receive a default table presentation', ()
   const chart = buildChartNode({ type: 'analysis', cubeCode: 'FORM_TEST',
     xField: { fieldCode: 'category' }, yField: [{ fieldCode: 'amount', aggregateType: 'SUM' }] });
   expect(chart.node.props.settings).toEqual({ container: { height: 248 } });
+});
+
+test.each(['table', 'bar', 'donut', 'kpi'])('rejects the unavailable %s preset before creating a sourceless card', view => {
+  const chart = { type: 'analysis', cubeCode: 'FORM_TEST', view,
+    xField: { fieldCode: 'category' }, yField: [{ fieldCode: 'amount', aggregateType: 'SUM' }] };
+  expect(validateChartConfigDetailed(chart)).toContainEqual(expect.objectContaining({ code: 'REPORT_ANALYSIS_CONFIG_INVALID' }));
+  expect(() => buildChartNode(chart)).toThrow(expect.objectContaining({ code: 'REPORT_ANALYSIS_CONFIG_INVALID' }));
 });

@@ -1,6 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
 
+function chartColors(tokens) {
+  const palette = tokens.getPropertyValue('--pod-chart-colors').trim()
+    || tokens.getPropertyValue('--color-group').trim();
+  const colors = [];
+  let depth = 0, start = 0;
+  // Color functions can contain commas; only split the top-level palette list.
+  for (let index = 0; index <= palette.length; index++) {
+    if (palette[index] === '(') depth++;
+    if (palette[index] === ')') depth--;
+    if (index === palette.length || palette[index] === ',' && depth === 0) {
+      const color = palette.slice(start, index).trim();
+      if (color) colors.push(color);
+      start = index + 1;
+    }
+  }
+  return colors.length ? colors : [tokens.getPropertyValue('--color-brand1-6').trim() || '#1677ff',
+    '#3471ea', '#a55bf5', '#da66c3', '#fc7d29', '#ffbc20'];
+}
+
 /** Editable ECharts content; the host supplies the query, theme and navigation. */
 function AnalysisChart({ analysis }) {
   const element = useRef(null);
@@ -11,10 +30,9 @@ function AnalysisChart({ analysis }) {
     const dimension = columns.find(column => !column.numeric);
     const metrics = columns.filter(column => column.numeric);
     const tokens = getComputedStyle(element.current);
-    const color = tokens.getPropertyValue('--color-brand1-6').trim() || '#1677ff';
     setSelectedRow(null);
     chart.setOption({
-      color: [color],
+      color: chartColors(tokens),
       tooltip: { trigger: 'axis', renderMode: 'richText' },
       legend: { ...appearance?.echartsLegend },
       grid: { left: 12, right: 12, top: 48, bottom: 12, containLabel: true },

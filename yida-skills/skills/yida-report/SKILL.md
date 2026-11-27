@@ -354,9 +354,9 @@ cubeCode:  FORM_AB4ACB9DD12C470D82047E05CDC19166CJSU  ← 连字符替换为下�
 
 单组件复用使用 `analysis-metric`、`analysis-chart`；雷达、词云、箱型、热力、桑基等使用 `analysis-echarts`，按参考文档的数据契约生成 option。高级组件与本卡的 analysis 适配层一起放进 `renderCard.source`，不要把整页复制到单卡；每卡保留自己的数据集、字段别名和刷新/下钻状态。
 
-目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。新卡片用源码设计展示；只有无源码的旧卡片才保留 `view`（table/bar/donut/kpi）的 Recharts 与 Ant Design 兼容视图，不给源码卡片生成这个设置项。
+目标环境加载新版 `YoushuAnalysisCard` 后，可使用 `type: "analysis"`。数据配置沿用原生 `xField`、`yField` 和日期粒度。卡片用源码设计展示；无源码时显示“暂无数据分析编码”。创建配置使用 `renderCard.source`，不传 `view` 预设；已有源码中的图形和交互保持不变。
 
-使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认设计组合指标、分组对比、占比图和表格，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮；`view` 只用于无源码的旧卡片。
+使用 `openyida sample openyida-page-template analysis-card-config` 获取含 JSX 源码的报表配置；仅需内容源码时用 `openyida sample openyida-page-template analysis-card-content`。默认源码使用 ECharts 展示分组指标，跟随主题图表套色，可完全改写。将源码写入 `renderCard.source`，用 `export default` 导出 React 组件，从 `react`、`echarts` 及按需使用的 `antd`、`recharts` 导入。源码拥有完整展示，包括标题、加载、错误、空态及刷新按钮。
 
 组件通过 `analysis` prop 读取 `rows`、`displayRows`、`columns`、`loading`、`error`、`select`、`refresh`、`drillPath`、`back`。点击时将原始行传给 select，保留原生联动和下钻。`analysis.api` 另提供 query(config) 和 useQuery(config, drillDimensions)，用于独立聚合查询；它们使用当前应用上下文和服务端权限，不自动继承报表筛选，需显式传入配置。多次 useQuery 在函数组件顶层调用，各自维护状态。
 
