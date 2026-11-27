@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.27-beta.2] - 2026-11-27
+
+- 支持对未保存的表单草稿生成修改候选，供用户预览后自行保存。
+
 ## [2026.11.27] - 2026-11-27
 
 - **在对话里提交宜搭反馈**。Agent 整理问题描述、复现步骤和已知的应用链接、页面或卡片标识，等你确认后提交并返回反馈编号。无需 GitHub 账号。无法登录时，可用 `openyida feedback url` 打开免登反馈表。
