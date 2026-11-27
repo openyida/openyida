@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 const { execute, parseArgs } = require('../lib/code-workspace');
 const { collectFiles, describe, readRecipe, writeState } = require('../lib/code-workspace/files');
-const { compileWorkspace } = require('../lib/code-workspace/workspace-app');
+const { compileWorkspace, testUrl } = require('../lib/code-workspace/workspace-app');
 const { readWorkspaceTemplate } = require('../lib/code-workspace/workspace-template');
 
 const appType = 'APP_WORKSPACE';
@@ -117,7 +117,7 @@ test('compiles the frozen scaffold into repeatable IIFE and stylesheet bytes and
   const first = await execute(options, api);
   const second = await execute(options, api);
   expect(first.buildId).toBe(second.buildId);
-  expect(first.previewUrl).toBe('https://example.test/APP_WORKSPACE/workspace?workspaceEnv=preview&sourceSnapshotId=' + localBase.sourceSnapshotId + '&buildId=' + first.buildId);
+  expect(first.previewUrl).toBeUndefined(); // An uploaded build is not a bound test version.
   expect(first).toMatchObject({ compilationVerified: true, runtimeVerified: false, published: false });
 }, 15000);
 
@@ -130,29 +130,30 @@ test('compilation rejects unsupported dependencies and a missing default export'
   }
 }, 15000);
 
-test('start-test returns a pinned workspace URL and save-test verifies the test binding without publishing', async () => {
+test('start-test identifies the draft independently of the preview URL and save-test verifies its binding', async () => {
   saveFixtureProject();
   writeState(folder, { ...localBase, appType, files: describe(collectFiles(folder)),
     build: { ...localBase, buildId: testSelection.codeWorkspaceBuildId } });
   const api = { app: jest.fn(getAppTag), currentUserId: 'user',
     baseUrl: 'https://example.test', enterTest: jest.fn(), get: jest.fn().mockResolvedValue({ ...localBase, files: describe(collectFiles(folder)) }),
     version: jest.fn(async action => {
-      if (action === 'getPreviewUrl') { return '/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=2.0.0'; }
+      if (action === 'getPreviewUrl') { return '/APP_WORKSPACE/preview'; }
+      if (action === 'listVersions') { return [{ version: '2.0.0', status: 'DRAFT' }]; }
       if (action === 'hasActiveTestVersion') { return true; }
       if (action === 'getTestEnvironmentStatus') { return { inTestEnvironment: true }; }
       if (action === 'getWorkspaceDraft') { return testSelection; }
       return null;
     }) };
   await expect(execute(parseArgs(['start-test', appType, '--workspace']), api)).resolves.toMatchObject({
-    draftVersion: '2.0.0', previewUrl: 'https://example.test/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=2.0.0',
+    draftVersion: '2.0.0', previewUrl: 'https://example.test/APP_WORKSPACE/preview',
   });
   api.version.mockClear();
   await expect(execute(parseArgs(['save-test', appType, folder, '--draft-version', '2.0.0',
     '--publish-id', testSelection.codeWorkspacePublishId]), api)).resolves.toMatchObject({
-    testUrl: 'https://example.test/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=2.0.0',
+    testUrl: 'https://example.test/APP_WORKSPACE/preview',
     testReadbackVerified: true, published: false,
   });
-  expect(api.version.mock.calls.map(([action]) => action)).toEqual(['saveWorkspaceDraft', 'getWorkspaceDraft']);
+  expect(api.version.mock.calls.map(([action]) => action)).toEqual(['saveWorkspaceDraft', 'getWorkspaceDraft', 'getPreviewUrl']);
   expect(api.enterTest).not.toHaveBeenCalled();
 });
 
@@ -182,6 +183,81 @@ test('confirmed publication is bound to the exact active test and never writes a
 function syncOptions() {
   return parseArgs(['sync-test', appType, folder, '--json']);
 }
+
+function unboundWorkspaceApi(versions) {
+  const head = { ...localBase, files: describe(collectFiles(folder)) };
+  let saved;
+  return {
+    app: jest.fn(getAppTag), baseUrl: 'https://example.test', multipart: jest.fn(),
+    get: jest.fn(async action => {
+      if (action === 'limits') { return { maxSourceFileCount: 100, maxSourceSnapshotBytes: 65536 }; }
+      if (action === 'currentBuild') { return { ...head, buildId: testSelection.codeWorkspaceBuildId }; }
+      return head;
+    }),
+    version: jest.fn(async (action, params) => {
+      if (action === 'getWorkspaceDraft') {
+        if (saved) { return saved; }
+        throw Object.assign(new Error('Test not bound'), { code: 'CODE_WORKSPACE_TEST_BUILD_REQUIRED' });
+      }
+      if (action === 'hasActiveTestVersion') { return true; }
+      if (action === 'listVersions') { return versions; }
+      if (action === 'getPreviewUrl') { return '/APP_WORKSPACE/preview'; }
+      if (action === 'saveWorkspaceDraft') {
+        saved = { ...testSelection, ...params };
+        return saved;
+      }
+      throw new Error('Unexpected version operation: ' + action);
+    }),
+  };
+}
+
+test('resumes the unbound uploaded build left by beta without creating another draft or rebuilding', async () => {
+  saveFixtureProject();
+  const api = unboundWorkspaceApi([{ status: 'ONLINE', version: '1.0' }, { status: 'DRAFT', version: '2.0.0' }]);
+  await expect(execute(syncOptions(), api)).resolves.toMatchObject({
+    testUrl: 'https://example.test/APP_WORKSPACE/preview', ...testSelection,
+    buildUploaded: false, testBindingUpdated: true, testReadbackVerified: true, published: false,
+  });
+  expect(api.multipart).not.toHaveBeenCalled();
+  expect(api.version.mock.calls.map(([action]) => action)).toEqual([
+    'getWorkspaceDraft', 'listVersions', 'hasActiveTestVersion', 'listVersions',
+    'saveWorkspaceDraft', 'getWorkspaceDraft', 'getPreviewUrl',
+  ]);
+});
+
+test.each([
+  { versions: [] }, { versions: [{ status: 'ONLINE', version: '1.0' }] },
+  { versions: [{ status: 'DRAFT', version: '2.0' }, { status: 'DRAFT', version: '3.0' }] },
+  { versions: [{ status: 'DRAFT', version: '' }] },
+])('missing or ambiguous DRAFT stops before binding: $versions', async ({ versions }) => {
+  saveFixtureProject();
+  const api = unboundWorkspaceApi(versions);
+  await expect(execute(syncOptions(), api)).rejects.toMatchObject({ code: 'CODE_WORKSPACE_TEST_CONTEXT_UNAVAILABLE' });
+  expect(api.version.mock.calls.some(([action]) => action === 'saveWorkspaceDraft' || action === 'createTestVersion')).toBe(false);
+  expect(api.multipart).not.toHaveBeenCalled();
+});
+
+test('workspace start-test accepts a legacy server URL without deriving draft identity from it', async () => {
+  const url = '/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=actual-version';
+  const api = { app: jest.fn(getAppTag), baseUrl: 'https://example.test', currentUserId: 'user',
+    version: jest.fn(async action => {
+      if (action === 'hasActiveTestVersion') { return true; }
+      if (action === 'listVersions') { return [{ status: 'DRAFT', version: 'actual-version' }]; }
+      if (action === 'getPreviewUrl') { return url; }
+      return null;
+    }) };
+  await expect(execute(parseArgs(['start-test', appType, '--workspace']), api)).resolves.toMatchObject({
+    draftVersion: 'actual-version', previewUrl: 'https://example.test' + url,
+  });
+});
+
+test.each([
+  '/OTHER_APP/preview', 'https://other.test/APP_WORKSPACE/preview',
+  '/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=changed-version',
+])('rejects a preview for another app, host or draft: %s', async link => {
+  const api = { baseUrl: 'https://example.test', version: jest.fn().mockResolvedValue(link) };
+  await expect(testUrl(api, appType, 'actual-version')).rejects.toMatchObject({ code: 'CODE_WORKSPACE_TEST_CONTEXT_UNAVAILABLE' });
+});
 
 test('an empty WORKSPACE saves, compiles, uploads and binds once, and every completed round returns one stable URL', async () => {
   saveFixtureProject();
@@ -217,7 +293,9 @@ test('an empty WORKSPACE saves, compiles, uploads and binds once, and every comp
         if (test) { return test; }
         throw Object.assign(new Error('Test not saved'), { code: 'CODE_WORKSPACE_TEST_BUILD_REQUIRED' });
       }
-      if (action === 'createTestVersion') { return '/APP_WORKSPACE/workspace?workspaceEnv=test&workspaceVersion=2.0.0'; }
+      if (action === 'createTestVersion' || action === 'getPreviewUrl') { return '/APP_WORKSPACE/preview'; }
+      if (action === 'hasActiveTestVersion') { return false; }
+      if (action === 'listVersions') { return [{ version: '2.0.0', status: 'DRAFT' }]; }
       if (action !== 'saveWorkspaceDraft') { throw new Error(`Unexpected version operation ${action}`); }
       expect(params.sourceSnapshotId).toBe(registered.sourceSnapshotId);
       expect(params.codeWorkspaceBuildId).toBe(registered.buildId);
@@ -225,7 +303,7 @@ test('an empty WORKSPACE saves, compiles, uploads and binds once, and every comp
       return test;
     }),
   };
-  const testUrl = 'https://example.test/APP_WORKSPACE/workspace-test';
+  const testUrl = 'https://example.test/APP_WORKSPACE/preview';
   const first = await execute(syncOptions(), api);
   expect(first).toMatchObject({ sourceChanged: true, buildUploaded: true, testBindingUpdated: true,
     testReadbackVerified: true, published: false, revision: 1, testUrl });
@@ -236,7 +314,7 @@ test('an empty WORKSPACE saves, compiles, uploads and binds once, and every comp
   await expect(execute(syncOptions(), api)).resolves.toMatchObject({ sourceChanged: false, testBindingUpdated: false,
     buildUploaded: false, codeWorkspaceBuildId: first.codeWorkspaceBuildId, testUrl });
   expect(api.multipart).not.toHaveBeenCalled();
-  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft']]);
+  expect(api.version.mock.calls).toEqual([['getWorkspaceDraft'], ['getPreviewUrl']]);
 
   fs.writeFileSync(path.join(folder, 'src/main.tsx'), "export default function App() { return 'revised'; }\n");
   const second = await execute(syncOptions(), api);
@@ -244,7 +322,7 @@ test('an empty WORKSPACE saves, compiles, uploads and binds once, and every comp
     codeWorkspaceDraftVersion: first.codeWorkspaceDraftVersion });
   expect(second.codeWorkspaceBuildId).not.toBe(first.codeWorkspaceBuildId);
   expect(api.multipart.mock.calls.map(([action]) => action)).toEqual(['savePatch', 'registerBuild']);
-  expect(api.version.mock.calls.map(([action]) => action)).toEqual(['getWorkspaceDraft', 'getWorkspaceDraft', 'saveWorkspaceDraft', 'getWorkspaceDraft']);
+  expect(api.version.mock.calls.map(([action]) => action)).toEqual(['getWorkspaceDraft', 'getPreviewUrl', 'getWorkspaceDraft', 'saveWorkspaceDraft', 'getWorkspaceDraft', 'getPreviewUrl']);
 }, 15000);
 
 test('an already uploaded build resumes binding with its exact identity even when the bind response is lost', async () => {
@@ -262,14 +340,15 @@ test('an already uploaded build resumes binding with its exact identity even whe
     version: jest.fn().mockResolvedValueOnce(previous).mockRejectedValueOnce(lostResponse).mockResolvedValueOnce(previous),
   };
   await expect(execute(syncOptions(), api)).rejects.toBe(lostResponse);
-  api.version.mockReset().mockResolvedValueOnce(previous).mockRejectedValueOnce(lostResponse).mockResolvedValueOnce(testSelection);
+  api.version.mockReset().mockResolvedValueOnce(previous).mockRejectedValueOnce(lostResponse).mockResolvedValueOnce(testSelection)
+    .mockResolvedValueOnce('/APP_WORKSPACE/preview');
   await expect(execute(syncOptions(), api)).resolves.toMatchObject({ ...testSelection, sourceChanged: false,
     buildUploaded: false, testBindingUpdated: true, published: false });
   expect(api.multipart).not.toHaveBeenCalled();
   expect(api.version.mock.calls).toEqual([['getWorkspaceDraft'], ['saveWorkspaceDraft', {
     sourceSnapshotId: head.sourceSnapshotId, codeWorkspaceDraftVersion: testSelection.codeWorkspaceDraftVersion,
     codeWorkspaceBuildId: testSelection.codeWorkspaceBuildId,
-  }], ['getWorkspaceDraft']]);
+  }], ['getWorkspaceDraft'], ['getPreviewUrl']]);
 });
 
 test('a compile failure leaves the previous successful test candidate available', async () => {
@@ -305,7 +384,7 @@ test.each([false, true])('already published sources avoid opening an empty test 
   };
   await expect(execute(syncOptions(), api)).resolves.toMatchObject({ appVersion: online.version, testSource: 'online',
     sourceChanged: false, buildUploaded: false, testBindingUpdated: false, published: false,
-    testUrl: 'https://example.test/APP_WORKSPACE/workspace-test' });
+    testUrl: 'https://example.test/APP_WORKSPACE/workspace' });
   expect(api.version.mock.calls).toEqual([['getWorkspaceDraft'], ['listVersions']]);
   expect(api.multipart).not.toHaveBeenCalled();
 });

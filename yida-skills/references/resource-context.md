@@ -4,6 +4,8 @@
 
 在 Step 2 使用本文件解析目标资源，再判断复用、补齐、修改还是创建。
 
+先核实已有应用类型。`appTag=WORKSPACE` 的全码工作台直接加载 `yida-code-workspace`，不因没有普通页面而进入 `yida-app` 补齐，也不额外创建 Canvas。本文普通页面、表单、流程的补齐规则适用于普通宜搭应用。
+
 ## 资源解析顺序
 
 按以下优先级选择 app/page/form/process，上游来源更明确时覆盖下游来源：
@@ -45,7 +47,8 @@
 | 已解析到 | 正确动作 |
 | --- | --- |
 | 目标 app | 在该 app 内修改、补齐或发布，不执行 `yida-create-app` |
-| 目标 app 但没有任何页面 | 加载 `yida-app`，复用 app，按 PRD 补齐表单、流程、页面/发布/导航（如需要）；PRD 不需要页面时不强制创建自定义页面 |
+| 目标 WORKSPACE 应用 | 加载 `yida-code-workspace`，复用应用级源码；没有普通页面不触发普通应用补齐 |
+| 目标普通 app 但没有任何页面 | 加载 `yida-app`，复用 app，按 PRD 补齐表单、流程、页面/发布/导航（如需要）；PRD 不需要页面时不强制创建自定义页面 |
 | 目标自定义页面 URL / `formUuid` / bound page | 写源码并发布到该页面，不执行 `yida-create-page` |
 | 目标表单 `formUuid` | 使用 `yida-create-form-page` 的 update/patch/rule/bind-datasource 模式，不创建同名或同类表单 |
 | 目标流程表单 / `processCode` | 使用 `yida-process-rule` 配置或更新流程，不从零执行 `yida-create-process` |

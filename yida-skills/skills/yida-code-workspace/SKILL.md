@@ -5,6 +5,8 @@ description: 开发宜搭全码工作台（WORKSPACE）或维护普通应用的�
 
 # 多文件代码工作区
 
+全码工作台与普通宜搭应用是平行的搭建路径。明确指定全码工作台、WORKSPACE 或本技能时，直接执行下方全码流程，不先加载 `yida-app`。已有应用核实 `appTag`，WORKSPACE 使用应用级源码，不额外创建普通自定义页面或 Canvas。普通应用的表单、流程和 Canvas 搭建仍由 `yida-app` 编排；明确维护其多文件代码工作区时使用本文普通应用章节。
+
 先确认目标应用、组织与当前登录环境。需要服务端开放工作区及应用开发权限。普通单文件 Canvas 页面继续使用原发布流程。
 
 ## 全码工作台（WORKSPACE）
@@ -27,7 +29,7 @@ openyida code-workspace pull APP_ID ./workspace --init-if-empty --json
 openyida code-workspace sync-test APP_ID ./workspace --json
 ```
 
-`sync-test` 保存源码、编译上传，并自动更新固定的 `/{APP_ID}/workspace-test`。源码已在测试生效时直接返回测试地址。失败时修复后在同一个目录重跑，继续完成送测。收到修订冲突时保留本地改动，将当前源码拉到新目录再比较。成功后把回执中的 `testUrl` 交给用户，并用这个地址验证挂载。正式 `/workspace` 加载已发布的构建。
+`sync-test` 保存源码、编译上传，创建或复用测试版本，从版本接口确认 DRAFT 标识，保存并回读测试构建绑定。成功后返回服务端实际测试地址，当前为 `/{APP_ID}/preview`。源码已在测试生效时直接返回测试地址；已正式发布的同一源码返回正式 `/workspace` 地址及 `testSource=online`。失败时保留源码目录，核实已保存状态，修复后在同一个目录重跑；匹配的已上传构建可复用。收到修订冲突时保留本地改动，将当前源码拉到新目录再比较。成功后把回执中的 `testUrl` 交给用户，并用这个地址验证挂载。仅构建成功不代表已送测或可预览；正式 `/workspace` 加载已发布的构建。
 
 在 `src/main.tsx` 默认导出 React 根组件。保留模板的工具链和锁文件。通过相对路径或 `@/` 导入工程内 JavaScript、TypeScript、JSON 和 CSS。运行时提供 React 和 ReactDOM 16.13.1。
 

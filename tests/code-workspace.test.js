@@ -32,6 +32,21 @@ test('start-test reuses the active test version and adds only the authenticated 
   expect(api.version).toHaveBeenCalledWith('addTestParticipants', { userIds: 'current-user' });
   await expect(execute({ action: 'start-test', appType: 'APP_A' }, { version: jest.fn() })).rejects.toThrow('identity');
 });
+test('ordinary app start-test preserves its token preview URL and never uses WORKSPACE draft selection', async () => {
+  const previewUrl = 'https://example.test/APP_A/workbench?previewVersion=fixture';
+  const api = { currentUserId: 'current-user', app: jest.fn(), version: jest.fn(async action => {
+    if (action === 'hasActiveTestVersion') { return false; }
+    if (action === 'createTestVersion') { return previewUrl; }
+    if (action === 'getTestEnvironmentStatus') { return { inTestEnvironment: true }; }
+    if (action === 'addTestParticipants') { return ['current-user']; }
+    throw new Error('Unexpected ordinary app operation: ' + action);
+  }) };
+  await expect(execute(parseArgs(['start-test', 'APP_A']), api)).resolves.toMatchObject({ previewUrl, published: false });
+  expect(api.app).not.toHaveBeenCalled();
+  expect(api.version.mock.calls.map(([action]) => action)).toEqual([
+    'hasActiveTestVersion', 'createTestVersion', 'addTestParticipants', 'getTestEnvironmentStatus',
+  ]);
+});
 test('bind selects a declared entry, keeps schema revision and verifies remote binding', async () => {
   project();
   writeState(root, { ...identity, appType: 'APP_A', files: describe(collectFiles(root)) });

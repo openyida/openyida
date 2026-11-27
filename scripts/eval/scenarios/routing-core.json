@@ -1,5 +1,23 @@
 [
   {
+    "id": "full-code-workspace-snake",
+    "prompt": "使用 yida-code-workspace 技能搭建一个工作台，页面中写一个贪吃蛇小游戏。",
+    "expectedSkill": "yida-code-workspace",
+    "forbiddenDefaultSkills": ["yida-app", "yida-create-page", "yida-canvas-custom-page"]
+  },
+  {
+    "id": "existing-workspace-without-pages",
+    "prompt": "已有应用 appTag=WORKSPACE，没有普通页面，继续给它搭建全码工作台。",
+    "expectedSkill": "yida-code-workspace",
+    "forbiddenDefaultSkills": ["yida-app"]
+  },
+  {
+    "id": "ordinary-app-with-workbench",
+    "prompt": "帮我搭建普通宜搭采购应用，有采购表单、审批流程和工作台首页。",
+    "expectedSkill": "yida-app",
+    "forbiddenDefaultSkills": ["yida-code-workspace"]
+  },
+  {
     "id": "native-form-view-rename",
     "prompt": "把客户表的「全部数据」表格视图重命名为「客户跟进」。",
     "expectedSkill": "yida-form-view",

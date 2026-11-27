@@ -57,7 +57,9 @@ describe('skill resource boundary copy', () => {
     const app = fs.readFileSync(path.join(__dirname, '..', 'yida-skills', 'skills', 'yida-app', 'SKILL.md'), 'utf8');
 
     expect(root).toMatch(/意图识别只决定入口，不展开执行细节/);
-    expect(root).toMatch(/完整搭建 \/ 补齐加载 `yida-app` 后按其 workflow 执行/);
+    expect(root).toContain('普通应用继续按 `yida-app` workflow 执行');
+    expect(root).toContain('明确指定 `yida-code-workspace` 的搭建请求直接进入全码路径');
+    expect(root).toContain('WORKSPACE 没有普通页面不代表需要转入普通应用补齐');
     expect(root).toMatch(/执行 Step 2 时必须读取 \[资源上下文与补齐判定\]/);
     expect(root).toMatch(/Step 2 必读/);
     expect(root).not.toMatch(/默认使用 `create-app \/ create-form \/ create-page \/ publish`/);

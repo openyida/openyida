@@ -6,13 +6,13 @@
     {
       "name": "yida-code-workspace",
       "path": "skills/yida-code-workspace/SKILL.md",
-      "display_name": "多文件代码工作区",
+      "display_name": "全码工作台与代码工作区",
       "description": "创建或开发全码工作台，以及维护普通应用的多文件代码工作区。支持初始化、批量保存、构建、测试和指定版本发布。",
       "category": "yida-skills/page",
       "tags": ["多文件", "代码目录", "全码应用", "全码工作台", "工作区"],
       "aliases": ["code-workspace"],
-      "positive_signals": ["全码工作台", "创建 WORKSPACE 应用", "多文件代码工作区", "批量保存代码目录"],
-      "negative_signals": ["单文件Canvas发布"],
+      "positive_signals": ["全码工作台", "创建 WORKSPACE 应用", "yida-code-workspace", "多文件代码工作区", "批量保存代码目录"],
+      "negative_signals": ["单文件Canvas发布", "普通宜搭应用完整搭建"],
       "command_ids": ["code-workspace", "create-app"],
       "requires_login": true
     },
@@ -350,6 +350,7 @@
     {
       "name": "yida-app",
       "path": "skills/yida-app/SKILL.md",
+      "negative_signals": ["全码工作台", "WORKSPACE 应用", "明确指定 yida-code-workspace"],
       "display_name": "宜搭完整应用开发",
       "description": "创建完整宜搭应用，或补齐已有应用时使用。先确认核心功能和实际用法；Fast 直接搭建，Plan 先确认方案。Fast 明确范围后立即创建或复用应用，独立生成 app_theme.css，按实际依赖推进资源和页面。Plan 物化并确认业务与视觉方案后实施。页面 UI 按已确认设计实现，代码示例按需参考；前后台都规划菜单顺序与默认页面，发布后分别验收实际入口。",
       "done_when": "需求范围及执行方式有本次依据。Fast 根据已确认需求、主题 CSS 和真实回执完成业务与视觉交付。Plan 已确认方案，PRD 已写入 prd/<项目名>/prd.md，design.md 已写入 prd/<项目名>/design.md。仅修改单页时，发布成功后返回当前页面 URL；没有 publish 证据只能声明已完成修改，待发布。完整应用按实际范围交付一组入口：管理端按默认任务返回 {base_url}/{appType}/workbench 或已验证的 /workbench/{formUuid}（需要时带真实 viewUuid）；独立前台仅在页面配置回读 renderNav=false（仅缺少 renderNav 时兼容 isRenderNav）且访问验证通过后交付 /custom/{formUuid}；完整应用默认提供 create-app 或 app-list 返回的 adminUrl（开发者管理后台），不受宿主或登录方式影响；仅业务后台时交付业务后台与开发者管理后台，不追加前台；仅前台时不追加业务后台，交付前台与开发者管理后台；有前后台时交付三个地址，不分前后台时交付系统入口与开发者管理后台。用户明确排除的入口除外，地址生成不等于已验证访问权限。final 仅总结本轮业务变化和真实结果，简单修改一句即可，再给主入口链接；不默认输出表格、长列表或资源 ID。缺少真实权限或多身份验证时明确说明未完成。 总结遵循 references/user-facing-summary.md，命令、文件路径和验证字段保留在内部记录。",
