@@ -575,6 +575,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: '刪除資料',
+    data_delete_invalid: '自動化刪除節點 {0} 的來源或篩選設定無效，請查看錯誤詳情。',
+    data_delete_readback_mismatch: '無法確認自動化刪除節點的版本、目標及篩選條件與提交一致。',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

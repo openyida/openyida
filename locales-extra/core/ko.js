@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: '데이터 삭제',
+    data_delete_invalid: '삭제 노드 {0}의 소스 또는 필터가 잘못되었습니다. 오류 세부 정보를 확인하세요.',
+    data_delete_readback_mismatch: '삭제 노드의 버전, 대상 및 필터를 확인할 수 없습니다.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

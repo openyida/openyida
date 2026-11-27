@@ -276,7 +276,9 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Round to the next 16 KiB boundary.
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
 // Process sample safeguards and default-view readback together measure 10,461,568 unpacked bytes.
-const MAX_UNPACKED_BYTES = 10224 * 1024;
+// AUTO-07 adds native automation deletion, localized diagnostics and skill updates.
+// Node 23 measures about 10,476,300 unpacked bytes. Retain the next 16 KiB boundary.
+const MAX_UNPACKED_BYTES = 10240 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -327,7 +329,8 @@ const MAX_UNPACKED_BYTES = 10224 * 1024;
 // Measured on Node 26: 2,834,173 packed / 10,436,340 unpacked bytes, 824 files.
 // Byte and per-file budgets remain unchanged; account only for these two shipped files.
 // The report-to-native-datav orchestration skill adds one packaged entry.
-const MAX_ENTRY_COUNT = 825;
+// Native automation deletion adds one runtime module.
+const MAX_ENTRY_COUNT = 826;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [

@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'डेटा हटाएँ',
+    data_delete_invalid: 'हटाने वाले नोड {0} का स्रोत या फ़िल्टर अमान्य है। त्रुटि विवरण देखें।',
+    data_delete_readback_mismatch: 'हटाने वाले नोड के संस्करण, लक्ष्य और फ़िल्टर की पुष्टि नहीं हो सकी।',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

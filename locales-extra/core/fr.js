@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'Supprimer des données',
+    data_delete_invalid: 'La source ou le filtre du nœud de suppression {0} est invalide. Consultez les détails de l’erreur.',
+    data_delete_readback_mismatch: 'Impossible de vérifier la version, la cible et le filtre du nœud de suppression.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',

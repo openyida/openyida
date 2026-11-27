@@ -12,6 +12,7 @@
 | 新增数据节点（单条或批量） | `dataCreate` | `AddDataNode` |
 | 获取单条数据节点 | `dataRetrieve` | `GetSingleDataNode` |
 | 更新数据节点 | `dataUpdate` | `UpdateDataNode` |
+| 删除数据节点 | `dataDelete` | `DeleteDataNode` |
 | 调用连接器节点 | `innerConnector` / `httpConnector` | `ConnectorNode` |
 | 发起审批节点 | `initiateApproval` | `InitiateApprovalNode` |
 | 条件分支容器 | `route` | `ConditionContainer` |

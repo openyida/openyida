@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { getLanguage, setLanguage } = require('../lib/core/i18n');
+const { deleteFixture, deleteSchemas } = require('./helpers/integration-delete-fixture');
 
 jest.mock('../lib/integration/integration-node-ids', () => {
   let counter = 0;
@@ -26,6 +27,32 @@ const {
 } = require('../lib/integration/integration-spec-builder');
 
 describe('integration spec builder', () => {
+  test.each(['single', 'batch'])('builds the native delete node referencing a %s query in both graphs', (mode) => {
+    const built = buildSpecProcessAndViewJson({
+      spec: deleteFixture(mode), appType: 'APP-TEST', formUuid: 'FORM-TRIGGER', processCode: 'LPROC-TEST',
+      formSchemasByUuid: deleteSchemas,
+    });
+    const { targetRows: sourceId, deleteRows: id } = built.nodeIdMap;
+    const nativeView = built.viewJson.schema.children.find(node => node.id === sourceId);
+    const deletion = built.viewJson.schema.children.find(node => node.id === id);
+    expect(built.processJson.nodes.find(node => node.nodeId === id)).toMatchObject({ type: 'dataDelete', props: { type: 'node', sourceId } });
+    expect(deletion).toMatchObject({ componentName: 'DeleteDataNode', props: {
+      deleteData: { type: 'node', sourceId, subSourceId: '', targetItem: {
+        type: 'node', value: sourceId, componentName: nativeView.componentName, props: nativeView.props.getData,
+      } },
+    } });
+  });
+
+  test('rejects a deletion referencing a query in a sibling branch', () => {
+    const { nodes: [source, deletion] } = deleteFixture();
+    const route = { type: 'route', branches: [
+      { conditions: [{ fieldId: 'textField_type', opCode: 'Equal', value: 'A' }], nodes: [source] },
+      { default: true, nodes: [deletion] },
+    ] };
+    expect(() => validateIntegrationSpec({ nodes: [route] })).toThrow(expect.objectContaining({
+      code: 'INTEGRATION_DATA_DELETE_INVALID', details: expect.objectContaining({ reason: 'UPSTREAM_QUERY_REQUIRED' }),
+    }));
+  });
   test('HTTP spec runtime compiles schema paths to nested object assignments', () => {
     const built = buildSpecProcessAndViewJson({ processCode: 'LPROC-SPEC', appType: 'APP-SPEC', formUuid: 'FORM-SPEC',
       flowName: 'HTTP nested', spec: { events: ['insert'], nodes: [{ type: 'connector', connectorId: 'Http_owned',

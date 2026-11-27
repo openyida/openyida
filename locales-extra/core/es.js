@@ -588,6 +588,9 @@ module.exports = {
   },
 
   integration: {
+    data_delete_name: 'Eliminar datos',
+    data_delete_invalid: 'El nodo de eliminación {0} tiene un origen o filtro no válido. Consulte los detalles del error.',
+    data_delete_readback_mismatch: 'No se pudieron verificar la versión, el destino y el filtro del nodo de eliminación.',
     spec_mixed_structural_flag: '{0} cannot be mixed with --spec. Put the complete node in the spec to prevent silently dropped parameters.',
     spec_message_node_required: 'Notification flags mixed with --spec require an explicit sendMessage node in the spec.',
     spec_get_process_schema: 'Fetch process-form Schema for {0}',
