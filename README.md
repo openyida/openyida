@@ -250,7 +250,7 @@ openyida get-schema APP_XXX FORM_XXX --compact --resolve-fields "Customer Name,S
 openyida get-schema APP_XXX --all --output-dir .cache/schemas
 ```
 
-Native forms use a component tree: business fields capture data, tabs switch content, action groups trigger business actions, images establish visual focus, status areas provide feedback, and `Divider` plus `ColumnContainer` organize hierarchy and columns. `create-form` field definitions create 19 business field types plus `Divider` and `ColumnContainer` (mapped to `ColumnsLayout` + `Column`), while updates retain other existing components.
+Native forms use a component tree: business fields capture data, tabs switch content, action groups trigger business actions, images establish visual focus, status areas provide feedback, and `Divider` plus `ColumnContainer` organize hierarchy and columns. `create-form` field definitions create 20 business field types, including the native rich text input `EditorField`, plus `Divider` and `ColumnContainer` (mapped to `ColumnsLayout` + `Column`), while updates retain other existing components.
 
 ### Custom Page Development
 

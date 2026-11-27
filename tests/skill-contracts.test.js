@@ -1293,7 +1293,8 @@ describe('OpenYida skill contracts', () => {
     expect(root).toContain('默认完成即停止');
     expect(appStep4).toContain('字段结构有 Divider 分组');
     expect(appStep4).toContain('拿到真实 `formUuid` 后写入资源上下文');
-    expect(createForm).toContain('可创建 19 种业务字段、Divider 与 ColumnContainer');
+    expect(createForm).toContain('支持原生富文本 EditorField');
+    expect(createForm).toContain('Divider 和 ColumnContainer');
     expect(createForm).toContain('按钮组/操作入口执行业务动作');
     expect(createForm).toContain('普通业务分组和章节分隔使用 `Divider`');
     expect(createForm).toContain('横向字段组合使用 `ColumnContainer`');

@@ -115,6 +115,7 @@
 |------|------|------|
 | `TextField` | 单行文本 | - |
 | `TextareaField` | 多行文本 | - |
+| `EditorField` | 原生富文本输入 | 例如 `{"type":"EditorField","label":"复现步骤"}`。在 PC 端填写加粗、列表等内容，随记录提交和编辑，使用宜搭默认的 ASL 格式。 |
 | `RadioField` | 单选 | `dataSource` |
 | `SelectField` | 下拉单选 | `dataSource` |
 | `CheckboxField` | 多选 | `dataSource` |
