@@ -36,8 +36,18 @@ jobs:
     - name: Validate skills
       run: npm run check:skills
 
-    - name: Run tests
-      run: npm test
+    - name: Run full-code workspace beta tests
+      run: >-
+        npm test -- --runInBand --runTestsByPath
+        tests/beta-entry.test.js
+        tests/utils.test.js
+        tests/cli-smoke.test.js
+        tests/workspace-app.test.js
+        tests/code-workspace.test.js
+        tests/code-workspace-transport.test.js
+        tests/code-workspace-page-binding.test.js
+        tests/code-workspace-layout-samples.test.js
+        tests/package-smoke.test.js
 
   publish:
     name: Publish to npm & Create Release

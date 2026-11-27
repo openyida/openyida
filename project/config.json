@@ -1,4 +1,4 @@
 {
-  "loginUrl": "https://www.aliwork.com/workPlatform",
-  "defaultBaseUrl": "https://www.aliwork.com"
+  "loginUrl": "https://davidtest.aliwork.com/workPlatform",
+  "defaultBaseUrl": "https://davidtest.aliwork.com"
 }

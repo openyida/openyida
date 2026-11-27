@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.11.27-beta.0] - 2026-11-27
+
+- 提供全码工作台测试流程，可创建 WORKSPACE 应用、拉取初始化 React 工程，并通过 `code-workspace sync-test` 保存、编译和更新固定测试地址，供千问办公验证 Hello World 生成流程。
+- 默认业务地址设为 `https://davidtest.aliwork.com`，登录入口和 Local Agent API 地址使用同一环境。显式环境配置和登录服务返回的业务地址按现有规则解析。
+- 全码页面使用 React/ReactDOM 16.13.1 和工程内源码模块。送测后在浏览器验证页面，正式发布继续确认当前测试候选。
+
 ## [2026.11.24] - 2026-11-24
 
 - **修复云沙箱批量操作偶发鉴权失败**。并行查询遇到凭据过期时会共享一次刷新结果，并在刷新成功后各补读一次。写入前换票失败时会停止写入，并返回便于排查的脱敏错误信息。

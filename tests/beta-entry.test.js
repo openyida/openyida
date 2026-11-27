@@ -27,9 +27,16 @@ describe('beta 入口沿用主干环境与域名选择', () => {
     require('../bin/yida-beta');
     return require('../lib/auth/token-auth').resolveTokenBaseUrl;
   }
-  test('零配置使用公有云，不注入测试环境或独立认证目录', () => {
+  test('零配置使用 davidtest 默认地址和对应登录及 Agent 入口', () => {
     const resolve = start();
-    expect(resolve({ projectRoot: root })).toBe('https://www.aliwork.com');
+    expect(resolve({ projectRoot: root })).toBe('https://davidtest.aliwork.com');
+    const { resolveLoginUrl } = require('../lib/core/env-manager');
+    expect(resolveLoginUrl(root)).toBe('https://davidtest.aliwork.com/workPlatform');
+    expect(require('../project/config.json')).toEqual({
+      loginUrl: 'https://davidtest.aliwork.com/workPlatform',
+      defaultBaseUrl: 'https://davidtest.aliwork.com',
+    });
+    expect(require('../package.json').openyidaAgent.endpoint).toBe('https://davidtest.aliwork.com/openyida/agent-api');
     for (const name of names.slice(0, 3)) { expect(process.env[name]).toBeUndefined(); }
     expect(process.env.OPENYIDA_SKIP_UPDATE_CHECK).toBe('1');
   });

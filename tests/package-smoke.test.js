@@ -157,6 +157,10 @@ describe('npm package smoke', () => {
       expect(files).toContain('yida-skills/SKILL.md');
       expect(files).toContain('yida-skills/references/setup-and-env.md');
       expect(files).toContain('yida-skills/skills/yida-login/SKILL.md');
+      expect(files).toContain('yida-skills/skills/yida-code-workspace/SKILL.md');
+      expect(files).toContain('lib/code-workspace/index.js');
+      expect(files).toContain('lib/code-workspace/workspace-app.js');
+      expect(files).toContain('lib/code-workspace/templates/yida-workspace-v1.json');
       expect(files).toContain('yida-skills/skills-index.json');
       expect(files).toContain('scripts/postinstall.js');
       expect(files.some((file) => file.startsWith('lib/templates/'))).toBe(false);

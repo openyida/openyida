@@ -1,6 +1,6 @@
 {
   "name": "openyida",
-  "version": "2026.11.24",
+  "version": "2026.11.27-beta.0",
   "description": "OpenYida CLI - AI 宜搭应用开发工具（安装即用，零配置）",
   "bin": {
     "openyida": "bin/yida.js",
@@ -121,7 +121,7 @@
     "node": ">=18"
   },
   "openyidaAgent": {
-    "endpoint": "https://www.aliwork.com/openyida/agent-api"
+    "endpoint": "https://davidtest.aliwork.com/openyida/agent-api"
   },
   "optionalDependencies": {
     "@openyida/local-agent-runtime-darwin-arm64": "0.1.8",
