@@ -277,7 +277,10 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // The native report/DataV orchestration skill and its routing metadata add ~8 KiB.
 // Process sample safeguards and default-view readback together measure 10,461,568 unpacked bytes.
 // The bounded feedback command log and its exporter need the next 16 KiB step.
-const MAX_UNPACKED_BYTES = 10240 * 1024;
+// Safe date clearing adds one runtime module and focused Skill/locale guidance.
+// Node 20.18.1: baseline 10,485,069 bytes / 828 files; candidate 10,497,922 / 829.
+// Advance exactly one 16 KiB unpacked step; compressed and per-file caps stay fixed.
+const MAX_UNPACKED_BYTES = 10256 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -330,10 +333,12 @@ const MAX_UNPACKED_BYTES = 10240 * 1024;
 // The report-to-native-datav orchestration skill adds one packaged entry.
 // Feedback submission and attachment handling add two runtime modules.
 // Local feedback diagnostics add one runtime module.
-const MAX_ENTRY_COUNT = 828;
+// The single-record date-clear helper adds exactly one packaged file.
+const MAX_ENTRY_COUNT = 829;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'lib/core/form-date-clear.js',
   'yida-skills/skills/report-to-native-datav/SKILL.md',
   'lib/app/datav.js',
   'lib/app/datav-designer.js',

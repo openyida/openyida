@@ -16,4 +16,18 @@ openyida data update form <appType> --form-uuid <formUuid> --inst-id <formInstId
 
 原生 DataMap 转换器会跳过 `null`，因此升级补丁含明确 `null` 时，CLI 写前拒绝整次操作，避免把清空意图静默忽略；可按字段支持的格式使用空字符串、空数组，或使用原生编辑器。其他字段值仍须通过既有类型与权限检查。
 
-旧版 `updateFormData` 的 `useLatestVersion=y` 在真实对照中曾出现外层成功但未升级；GET、`true` 或额外 `formUuid` 也不能作为通用修复。不升级的更新沿用旧接口；显式升级采用上述原生单实例契约。并发冲突或失败后不自动重发、不回退旧接口，不调用运维批量迁移接口。版本或数据无法确认时，应先只读核对原记录及表单版本，再决定后续恢复。
+旧版 `updateFormData` 的 `useLatestVersion=y` 在真实对照中曾出现外层成功但未升级；GET、`true` 或额外 `formUuid` 也不能作为通用修复。不升级的常规更新沿用旧接口；显式升级采用上述原生单实例契约。并发冲突或失败后不自动重发、不回退旧接口，不调用运维批量迁移接口。版本或数据无法确认时，应先只读核对原记录及表单版本，再决定后续恢复。
+
+## 清空已有主表日期并保留原版本
+
+```sh
+openyida data update form <appType> --form-uuid <formUuid> --inst-id <formInstId> \
+  --expect-form-name <真实名称> --expect-form-type receipt \
+  --data-json '{"dateField_xxx":null}' --json
+```
+
+用真正的 JSON `null` 单独提交已有主表 `DateField`。CLI 验证记录和字段权限、非必填校验及可读原始组件清单，使用原生 `editFormData` 的单字段组件补丁，携带原 `version` 和 `gmtModified`，避免忽略空值或因全局 `ignoreEmpty=n` 影响未提交字段。
+
+清空后必须回读日期为空、实例版本不变及其他返回的原生字段不变，即使未传 `--verify-write`。`readbackVerified=true` 才表示核验通过；`verification.scope=returned_native_fields`，`preservedFields` 列出实际比对的其他字段，不声称验证了隐藏或未返回的数据。服务端业务规则仍会执行，导致其他字段变化时返回不一致并保留实例 ID，不自动回滚或重复提交。
+
+多个主表日期可一起清空；必填日期、子表日期、混合其他字段更新或同时升级版本会在写前拒绝。其他字段更新或升级需按用户授权独立处理，不删去清空字段后擅自继续原补丁。自定义页面的 SDK 是独立调用链，此 CLI 能力不改变 `this.utils.yida.updateFormData` 的服务端行为。

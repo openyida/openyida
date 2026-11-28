@@ -1,6 +1,6 @@
 ---
 name: yida-data-management
-description: 查询和维护宜搭表单、流程、任务和子表数据；data seed form/process 批量写入示例、转换日期、核验并返回实例 ID；支持流程当前审批人统计、任务转交和普通记录删除。历史实例版本升级须用户显式选择，并回读核验版本与字段值。
+description: 查询和维护宜搭表单、流程、任务和子表数据；清空普通记录的主表日期并保留原版本；data seed form/process 批量写入示例、转换日期、核验并返回实例 ID；支持流程当前审批人统计、任务转交和普通记录删除。历史实例版本升级须用户显式选择，并回读核验版本与字段值。
 ---
 
 # 数据管理
@@ -8,13 +8,25 @@ description: 查询和维护宜搭表单、流程、任务和子表数据；data
 
 仅调整数据管理页外观、换风格或突出操作时，转 `use_skill("yida-data-manage-ui")`，不执行本技能的数据写入。
 
+## 清空历史记录的日期
+
+只清空普通表单主表的日期时，单独提交目标 `DateField` 的 JSON `null`，不传空字符串或字符串 `"null"`：
+
+```bash
+openyida data update form <appType> --inst-id <formInstId> --form-uuid <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-json '{"dateField_xxx":null}' --json
+```
+
+CLI 使用原生单记录的局部编辑契约，只发送指定日期字段，携带记录原表单版本和修改时间，不升级版本；自动回读核对日期为空、原版本和其他返回的原生字段。核对 `readbackVerified=true`、`verification.verifiedFields`、`preservedFields` 和 `instanceVersion`。`scope=returned_native_fields` 仅覆盖可回读字段，不推断隐藏字段。
+
+日期必须已存在、可编辑且非必填。清空可包含多个主表日期，但不能与其他字段更新、子表日期或版本升级合成一次调用；遇到这些情况按报错拆分已获授权的操作，或使用原生编辑页。原生保存仍会执行服务端业务规则，其他可读字段被规则改变时回读失败。请求结果未知或回读失败后只读核对原记录，不重复写入、不改走 `ignoreEmpty=n` 或删旧建新。
+
 ## 历史记录补新增字段
 
 给已有普通表单记录填写后来新增的字段时，先说明按最新表单版本更新会升级本次指定的历史记录，由用户明确选择是否升级；未选择时不得自行添加 `y`。用户已明确要求升级或已选择 `y` 时沿用该选择，不重复确认。用户不升级时，停止本次包含新增字段的写入，不自动删字段、升级其他记录或删旧建新。仅修改既有字段时，默认不请求升级。
 
 用户选择升级后，使用 `--use-latest-version y --verify-write --json`，保留原实例 ID，只提交本次修改字段。`y` 会强制字段与实例版本回读；关联、日期、文本等字段仍按各自格式校验。
 
-CLI 的显式升级使用原生单记录编辑接口，绑定已核对的版本与记录修改时间；发生并发冲突时先只读核对，不自动重试。该转换器会忽略 `null`，因此升级补丁含明确 `null` 时会在写前拒绝整次操作；需要清空时使用字段支持的空值格式或原生编辑器，不能删去该字段后擅自继续写入。
+CLI 的显式升级使用原生单记录编辑接口，绑定已核对的版本与记录修改时间；发生并发冲突时先只读核对，不自动重试。该转换器会忽略 `null`，因此升级补丁含明确 `null` 时会在写前拒绝整次操作；主表日期按上节单独清空，其他类型按字段支持的空值格式或原生编辑器处理，不能删去该字段后擅自继续写入。
 
 ```bash
 openyida data update form <appType> --inst-id <原formInstId> --form-uuid <formUuid> --expect-form-name <真实名称> --expect-form-type receipt --data-file <patch.json> --use-latest-version y --verify-write --json
