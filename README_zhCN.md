@@ -1,5 +1,7 @@
 <div align="center">
 
+![OpenYida × 千问办公](https://img.alicdn.com/imgextra/i2/O1CN01MLl4b5ayZyG3OTaP_!!6000000007688-2-tps-1672-941.png)
+
 # OpenYida
 
 **面向 AI 编程工具的 AI 宜搭 CLI。**
@@ -44,6 +46,53 @@ OpenYida 是 AI 编程工具和宜搭之间的桥接层。AI Agent 不需要直�
 </table>
 
 支持**应用主题选择和自由创意**。你可以描述喜欢的风格，也可以提供参考网站或设计图，定制应用外观。[查看更多应用案例](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase)。
+
+## 业务案例
+
+从业务工作台、数据分析到自定义体验，以下原图来自[宜搭官网](https://www.aliwork.com/)和 [OpenYida 演示案例](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=docs&openyidaPath=introduction%2Fdemo)。点击图片可查看原图。
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg" alt="采购工作台：采购指标、待办任务和风险预警" width="100%"></a>
+      <br><strong>采购协同 · 日常工作台</strong>
+      <p>集中呈现采购指标、待办任务、供应商管理和风险预警。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg" alt="设备巡检管理看板：任务完成率和设备状态分布" width="100%"></a>
+      <br><strong>设备巡检 · 运行总览</strong>
+      <p>一屏查看设备状态、巡检进度和维修工单。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png?x-oss-process=image/resize,w_1200/format,webp" alt="深色差旅费用驾驶舱：部门费用对比和支出结构" width="100%"></a>
+      <br><strong>差旅费用 · 数据驾驶舱</strong>
+      <p>用深色看板展示费用总览、部门对比和支出结构。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png?x-oss-process=image/resize,w_1200/format,webp" alt="AI 学堂课程中心：课程卡片、分类筛选和报名状态" width="100%"></a>
+      <br><strong>AI 学堂 · 课程中心</strong>
+      <p>以清晰的课程卡片组织分类筛选、课程详情和报名状态。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png?x-oss-process=image/resize,w_1200/format,webp" alt="实验仪器借用看板：在借、已归还和待校准分组" width="100%"></a>
+      <br><strong>借用管理 · 状态看板</strong>
+      <p>用白底细线和分组卡片区分在借、已归还与待校准设备。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png?x-oss-process=image/resize,w_1200/format,webp" alt="焚烧发电数字孪生演示：三维厂区、设备和环保指标" width="100%"></a>
+      <br><strong>焚烧发电 · 数字孪生</strong>
+      <p>结合三维厂区、设备与环保指标展示运行态势，图中使用演示数据。</p>
+    </td>
+  </tr>
+</table>
+
+搭建时可以把这些界面作为视觉参考，向 OpenYida 说明业务、使用者、数据和设计偏好。这些是效果示例，实际应用会按你的需求创建。
+
+[查看更多应用案例 →](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase)
 
 ## 核心能力
 
