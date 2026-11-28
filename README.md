@@ -1,6 +1,6 @@
 <div align="center">
 
-![OpenYida](https://img.alicdn.com/imgextra/i2/O1CN01fwUxry9qUtJ3OTaP_!!6000000008165-2-tps-1672-941.png)
+![OpenYida × QwenWork](https://img.alicdn.com/imgextra/i2/O1CN01MLl4b5ayZyG3OTaP_!!6000000007688-2-tps-1672-941.png)
 
 # OpenYida
 
@@ -788,23 +788,50 @@ For Codex, `npm install -g openyida` additionally creates a local plugin marketp
 
 ## Examples
 
-### Business Systems: IPD and CRM
+Explore business workspaces, analytics, and custom experiences through real Yida application screenshots from the [Yida website](https://www.aliwork.com/) and [OpenYida example gallery](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=docs&openyidaPath=introduction%2Fdemo). Click any image for the original.
 
-Describe your requirements in one sentence; the agent can create a complete multi-form Yida application.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg" alt="Procurement workspace with purchase metrics, pending tasks and risk alerts" width="100%"></a>
+      <br><strong>Procurement · Daily operations</strong>
+      <p>Purchase metrics, pending tasks, supplier management, and risk alerts in one workspace.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg" alt="Equipment inspection dashboard with task completion and equipment status charts" width="100%"></a>
+      <br><strong>Equipment inspection · Operational overview</strong>
+      <p>Equipment status, inspection progress, and maintenance work orders at a glance.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png?x-oss-process=image/resize,w_1200/format,webp" alt="Dark travel expense dashboard with department comparisons and expense breakdowns" width="100%"></a>
+      <br><strong>Travel expenses · Analytics dashboard</strong>
+      <p>A dark dashboard for expense totals, department comparisons, and spending breakdowns.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png?x-oss-process=image/resize,w_1200/format,webp" alt="AI learning center with course cards, category filters and registration status" width="100%"></a>
+      <br><strong>AI learning · Course center</strong>
+      <p>Course cards, category filters, and registration status in a clear, colorful layout.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png?x-oss-process=image/resize,w_1200/format,webp" alt="Laboratory equipment lending board grouped by borrowed, returned and pending calibration" width="100%"></a>
+      <br><strong>Equipment lending · Status board</strong>
+      <p>A clean board for borrowed, returned, and pending-calibration laboratory equipment.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png?x-oss-process=image/resize,w_1200/format,webp" alt="Waste-to-energy digital twin demonstration with a 3D plant and operational indicators" width="100%"></a>
+      <br><strong>Waste-to-energy · Digital twin</strong>
+      <p>A 3D plant overview with equipment and environmental indicators using demonstration data.</p>
+    </td>
+  </tr>
+</table>
 
-![IPD](https://img.alicdn.com/imgextra/i2/O1CN01YBEMa929J7sD9v8U1_!!6000000008046-2-tps-3840-3366.png)
+Use these screens as visual references: describe your business, users, data, and preferred style when asking OpenYida to build an app. They are examples, rather than ready-to-install application templates.
 
-![CRM](https://img.alicdn.com/imgextra/i3/O1CN01kn0Vcn1H5OkbQaizA_!!6000000000706-2-tps-3840-2168.png)
-
-### Custom Pages and Utilities
-
-![Salary Calculator](https://gw.alicdn.com/imgextra/i2/O1CN017TeJuE1reVH2Dj7b7_!!6000000005656-2-tps-5114-2468.png)
-
-![Enterprise Collaboration](https://gw.alicdn.com/imgextra/i1/O1CN01EZtvfs1cxXV00UaXi_!!6000000003667-2-tps-5118-2470.png)
-
-### Interactive Campaigns
-
-![Lantern Riddle Game](https://img.alicdn.com/imgextra/i3/O1CN01dCoscP25jSAtAB9o3_!!6000000007562-2-tps-2144-1156.png)
+[Browse more application examples →](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase)
 
 ## Common Prompts
 
