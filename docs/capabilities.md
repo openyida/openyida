@@ -144,6 +144,10 @@
 | 查询页面分享配置 | `openyida get-page-config <appType> <formUuid>` |
 | 规划公开表单镜像字段 | `openyida externalize-form <appType> <formUuid> [--schema-file file]` |
 
+全量查询 `data query form --all` 会以 `complete` 标明是否核实了本次请求范围的分页覆盖，`fetchedCount` 是返回行数，`sourceTotalCount` 是服务端最近有效的声明总数，缺失时为 `null`。旧字段 `totalCount` 保留原有回退行为。未核实读全时 `complete: false`，并返回 `incompleteReason`。检查依据是当前查询的回包及其中可用的记录标识。
+
+表单详情自动补读子表时，补读不完整则保留原内联行，并在 `_openyidaIncompleteSubforms` 中说明字段和原因。
+
 ## 报表、看板与可视化
 
 | 功能 | 执行操作 |

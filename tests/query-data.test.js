@@ -558,6 +558,103 @@ describe('run() query form', () => {
     mockError.mockRestore();
   });
 
+  test.each([
+    {
+      name: 'page limit reached with only 4 of 6 records',
+      pages: [
+        { totalCount: 6, data: ['A', 'B'] },
+        { totalCount: 6, data: ['C', 'D'] },
+      ],
+      maxPages: 2, fetchedCount: 4, sourceTotalCount: 6, reason: 'max_pages_reached',
+    },
+    {
+      name: 'a duplicate page reaches the declared total',
+      pages: [
+        { totalCount: 4, data: [{ formInstId: 'A' }, { formInstId: 'B' }] },
+        { totalCount: 4, data: [{ formInstId: 'A' }, { formInstId: 'B' }] },
+      ],
+      fetchedCount: 4, sourceTotalCount: 4, reason: 'duplicate_record',
+    },
+    {
+      name: 'a short page ends before the declared total',
+      pages: [
+        { totalCount: 6, data: ['A', 'B'] },
+        { totalCount: 6, data: ['C'] },
+      ],
+      fetchedCount: 3, sourceTotalCount: 6, reason: 'premature_end',
+    },
+    {
+      name: 'the last page has no declared total',
+      pages: [{ data: ['A'] }],
+      fetchedCount: 1, sourceTotalCount: null, reason: 'source_total_unavailable',
+    },
+    {
+      name: 'an unrecognized payload is not a verified empty page',
+      pages: [{ records: [] }],
+      fetchedCount: 0, sourceTotalCount: null, reason: 'invalid_page',
+    },
+    {
+      name: 'the declared total changes while reading',
+      pages: [
+        { totalCount: 4, data: ['A', 'B'] },
+        { totalCount: 3, data: ['C'] },
+      ],
+      fetchedCount: 3, sourceTotalCount: 3, reason: 'source_total_changed',
+    },
+    {
+      name: 'a requested page is returned with a different page number',
+      pages: [{ currentPage: 2, totalCount: 1, data: ['A'] }],
+      fetchedCount: 0, sourceTotalCount: 1, reason: 'unexpected_page',
+    },
+  ])('--all reports an incomplete read when $name', async ({ pages, maxPages, fetchedCount, sourceTotalCount, reason }) => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    for (const page of pages) {
+      utils.httpGet.mockResolvedValueOnce({ success: true, content: page });
+    }
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const args = ['query', 'form', 'APP_XXX', 'FORM-XXX', '--all', '--size', '2', '--ids-only'];
+      if (maxPages) {args.push('--max-pages', String(maxPages));}
+      await run(args);
+      expect(utils.httpGet).toHaveBeenCalledTimes(pages.length);
+      expect(getLoggedJson(log)).toMatchObject({
+        success: true, complete: false, fetchedCount, sourceTotalCount, incompleteReason: reason,
+      });
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  test.each([
+    { startPage: '1', page: { totalCount: '0', data: [] }, fetchedCount: 0, sourceTotalCount: 0 },
+    { startPage: '2', page: { totalCount: 3, data: ['C'] }, fetchedCount: 1, sourceTotalCount: 3 },
+  ])('--all verifies the requested range from page $startPage', async ({
+    startPage, page, fetchedCount, sourceTotalCount,
+  }) => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValueOnce({ success: true, content: page });
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--all', '--page', startPage, '--size', '2']);
+      expect(getLoggedJson(log)).toMatchObject({
+        success: true, data: page.data, totalCount: sourceTotalCount, fetchedCount, sourceTotalCount, complete: true,
+      });
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  test('--all preserves remote failures and reports rows already read', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce({ success: true, content: { totalCount: 4, data: ['A', 'B'] } })
+      .mockResolvedValueOnce({ success: false, errorCode: '403', errorMsg: 'Permission denied' });
+    await expect(run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--all', '--size', '2'])).rejects.toMatchObject({
+      code: 'DATA_API_ERROR',
+      details: { errorCode: '403', complete: false, fetchedCount: 2, sourceTotalCount: 4, incompleteReason: 'request_failed' },
+    });
+  });
+
   test('--resolve-aliases 会映射 dynamicOrder 中的别名', async () => {
     utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
     utils.httpGet
@@ -713,6 +810,31 @@ describe('run() get form', () => {
 
     mockLog.mockRestore();
     mockError.mockRestore();
+  });
+
+  test('incomplete subform hydration preserves the inline rows and reports the gap', async () => {
+    const inlineRows = Array.from({ length: 50 }, (_, index) => ({ rowId: `inline-${index}` }));
+    const fetchedRows = Array.from({ length: 60 }, (_, index) => ({ rowId: `fetched-${index}` }));
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: { formInstId: 'INST-001', formData: { tableField_1: inlineRows } },
+      })
+      .mockResolvedValueOnce({ success: true, content: { totalCount: 80, data: fetchedRows } });
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await run(['get', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--form-uuid', 'FORM-XXX']);
+      const result = getLoggedJson(log);
+      expect(result.content.formData.tableField_1).toEqual(inlineRows);
+      expect(result.content._openyidaHydratedSubforms).toBeUndefined();
+      expect(result.content._openyidaIncompleteSubforms).toEqual([{
+        fieldId: 'tableField_1', originalCount: 50, fetchedCount: 60, sourceTotalCount: 80,
+        complete: false, incompleteReason: 'premature_end',
+      }]);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   test('--inst-id 查询失败时打印错误并退出', async () => {
