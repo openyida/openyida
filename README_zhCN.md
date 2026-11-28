@@ -1,5 +1,7 @@
 <div align="center">
 
+![OpenYida × 千问办公](https://img.alicdn.com/imgextra/i2/O1CN01MLl4b5ayZyG3OTaP_!!6000000007688-2-tps-1672-941.png)
+
 # OpenYida
 
 **面向 AI 编程工具的 AI 宜搭 CLI。**

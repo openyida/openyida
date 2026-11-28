@@ -1,6 +1,6 @@
 <div align="center">
 
-![OpenYida](https://img.alicdn.com/imgextra/i2/O1CN01fwUxry9qUtJ3OTaP_!!6000000008165-2-tps-1672-941.png)
+![OpenYida × QwenWork](https://img.alicdn.com/imgextra/i2/O1CN01MLl4b5ayZyG3OTaP_!!6000000007688-2-tps-1672-941.png)
 
 # OpenYida
 
