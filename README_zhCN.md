@@ -266,7 +266,7 @@ openyida sample openyida-page-template canvas-form-drawer --output project/pages
 openyida get-schema APP_XXX FORM_XXX
 ```
 
-表单采用组件树：业务字段负责数据采集，Tab 负责内容切换，操作按钮组执行业务动作，图片建立视觉焦点，状态区提供反馈，`Divider` 和 `ColumnContainer` 组织层级与分栏。`create-form` 字段定义可创建 19 种业务字段、`Divider` 和 `ColumnContainer`，更新表单时保留其他已有组件。
+表单采用组件树：业务字段负责数据采集，Tab 负责内容切换，操作按钮组执行业务动作，图片建立视觉焦点，状态区提供反馈，`Divider` 和 `ColumnContainer` 组织层级与分栏。`create-form` 字段定义可创建 20 种业务字段，包括可填写的原生富文本 `EditorField`，也支持 `Divider` 和 `ColumnContainer`。更新表单时保留其他已有组件。
 
 ### 流程审批
 

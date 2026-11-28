@@ -1,6 +1,6 @@
 ---
 name: yida-create-form-page
-description: 表单页面创建与更新；可创建 19 种业务字段、Divider 与 ColumnContainer，更新组件树时保留已有的 Tab、按钮组、图片和状态区；支持联动规则和数据源绑定。
+description: 表单页面创建与更新，支持原生富文本 EditorField 等业务字段、Divider 和 ColumnContainer，以及联动规则和数据源绑定。更新时保留已有的 Tab、按钮组、图片和状态区。
 ---
 
 # 表单页面创建与更新
@@ -323,6 +323,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 | 字段类型 | 说明 | 特殊说明 |
 |------|------|------|
 | `TextField` / `TextareaField` | 单行 / 多行文本 | 最常用文本字段 |
+| `EditorField` | 可填写的原生富文本 | PC 端填写和编辑，按记录保存 |
 | `NumberField` | 数字 | 金额、数量、分值 |
 | `DateField` / `CascadeDateField` | 日期 / 日期区间 | 流程表单常用 |
 | `SelectField` / `RadioField` | 单选 | 创建字段 JSON 时必须提供 `dataSource`，不要省略或只写旧式 `options` |
@@ -362,7 +363,7 @@ openyida create-form resume <appType> <formUuid> <fieldsJsonOrFile> --json
 |---------|----------|
 | create 返回失败 | 检查 appType 是否正确，确认登录态有效 |
 | 字段级命令找不到字段 | 先看命令 JSON 的 `diagnostics[].candidates` 修正 label、补 `tableLabel` 或改用已知 `fieldId`；仍不明确时再用 `openyida get-schema --compact --resolve-fields` |
-| 字段类型不支持 | 使用 `create-form` 支持的 19 种业务字段、`Divider` 或 `ColumnContainer` |
+| 字段类型不支持 | 查阅字段定义参考中的支持列表 |
 | 子表字段创建失败 | 确认 `children` 数组格式正确，子表字段不能嵌套子表 |
 | 返回 JSON 中无 formUuid | 不要猜测 formUuid，重新执行命令获取 |
 

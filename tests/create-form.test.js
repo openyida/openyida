@@ -37,6 +37,67 @@ const { createDefinitionReaders } = require('../lib/app/create-form/definition-r
 const formCompiler = require('../lib/app/services/form-compiler');
 const { verifyFieldBindings } = require('../lib/app/services/field-bindings');
 
+describe('native rich text fields', () => {
+  const title = { type: 'TextField', label: '缺陷标题' };
+  const editor = { type: 'EditorField', label: '复现步骤', placeholder: '填写复现步骤', required: true };
+
+  function formChildren(schema) {
+    const root = schema.pages[0].componentsTree[0];
+    function findFormContainer(node) {
+      if (node.componentName === 'FormContainer') { return node; }
+      return (node.children || []).map(findFormContainer).find(Boolean);
+    }
+    return findFormContainer(root).children;
+  }
+
+  test.each([['create-form', createForm._private.buildFormSchema], ['shared compiler', formCompiler.buildFormSchema]])(
+    '%s emits the native rich text editor and its registry entry', (_name, buildFormSchema) => {
+      const schema = buildFormSchema('缺陷反馈', [title, editor], 'FORM_TEST', 'corp', 'APP_TEST');
+      const [text, richText] = formChildren(schema);
+      expect(text.componentName).toBe('TextField');
+      expect(richText).toMatchObject({
+        componentName: 'EditorField',
+        props: {
+          fieldId: expect.stringMatching(/^editorField_/),
+          label: { zh_CN: '复现步骤' },
+          placeholder: { zh_CN: '填写复现步骤' },
+          value: '',
+          saveType: 'asl',
+          imagePreview: 'ALL',
+          submittable: 'ALWAYS',
+          validation: expect.arrayContaining([expect.objectContaining({ type: 'required' })]),
+        },
+      });
+      expect(richText.props).not.toHaveProperty('maxLength');
+      expect(schema.pages[0].componentsMap).toContainEqual({
+        package: '@ali/vc-deep-yida', componentName: 'EditorField',
+      });
+      const { extractFieldSummary } = require('../lib/app/get-schema');
+      expect(extractFieldSummary({ content: schema })).toContainEqual(expect.objectContaining({
+        fieldId: richText.props.fieldId, componentName: 'EditorField', label: '复现步骤',
+      }));
+    }
+  );
+
+  test('appends a rich text field without changing existing fields and preserves a saved native value on rename', () => {
+    const schema = createForm._private.buildFormSchema('缺陷反馈', [title], 'FORM_TEST', 'corp', 'APP_TEST');
+    const original = JSON.parse(JSON.stringify(formChildren(schema)[0]));
+    createForm._private.applyChangesToSchema(schema, [{ action: 'add', field: editor }]);
+    const [text, richText] = formChildren(schema);
+    expect(text).toEqual(original);
+    expect(richText.props.saveType).toBe('asl');
+    richText.props.value = '["root",{},["p",{},"已有默认内容"]]';
+    createForm._private.applyChangesToSchema(schema, [
+      { action: 'update', fieldId: richText.props.fieldId, changes: { label: '详细复现步骤' } },
+    ]);
+    expect(formChildren(schema)[1]).toMatchObject({ componentName: 'EditorField', props: {
+      fieldId: richText.props.fieldId, label: { zh_CN: '详细复现步骤' },
+      saveType: 'asl', value: '["root",{},["p",{},"已有默认内容"]]',
+    } });
+    expect(schema.pages[0].componentsMap.filter(component => component.componentName === 'EditorField')).toHaveLength(1);
+  });
+});
+
 describe('server-generated serial numbers do not require frontend input', () => {
   afterEach(() => {
     jest.restoreAllMocks();
