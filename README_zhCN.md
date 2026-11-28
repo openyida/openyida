@@ -1,5 +1,7 @@
 <div align="center">
 
+![OpenYida × 千问办公](https://img.alicdn.com/imgextra/i2/O1CN01MLl4b5ayZyG3OTaP_!!6000000007688-2-tps-1672-941.png)
+
 # OpenYida
 
 **面向 AI 编程工具的 AI 宜搭 CLI。**
@@ -44,6 +46,53 @@ OpenYida 是 AI 编程工具和宜搭之间的桥接层。AI Agent 不需要直�
 </table>
 
 支持**应用主题选择和自由创意**。你可以描述喜欢的风格，也可以提供参考网站或设计图，定制应用外观。[查看更多应用案例](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase)。
+
+## 业务案例
+
+从业务工作台、数据分析到自定义体验，以下原图来自[宜搭官网](https://www.aliwork.com/)和 [OpenYida 演示案例](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=docs&openyidaPath=introduction%2Fdemo)。点击图片可查看原图。
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/b526c08b4493837dbf265d43de647c36.jpg" alt="采购工作台：采购指标、待办任务和风险预警" width="100%"></a>
+      <br><strong>采购协同 · 日常工作台</strong>
+      <p>集中呈现采购指标、待办任务、供应商管理和风险预警。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg"><img src="https://g.alicdn.com/yida-apps/home/0.0.69/assets/1319ffb8111f713fa7fef9e79f38d147.jpg" alt="设备巡检管理看板：任务完成率和设备状态分布" width="100%"></a>
+      <br><strong>设备巡检 · 运行总览</strong>
+      <p>一屏查看设备状态、巡检进度和维修工单。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/574f59a1-2686-46f9-b315-1f03a53c560d.png?x-oss-process=image/resize,w_1200/format,webp" alt="深色差旅费用驾驶舱：部门费用对比和支出结构" width="100%"></a>
+      <br><strong>差旅费用 · 数据驾驶舱</strong>
+      <p>用深色看板展示费用总览、部门对比和支出结构。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/51c8a74f-559e-4fc0-b30d-324fe2400539.png?x-oss-process=image/resize,w_1200/format,webp" alt="AI 学堂课程中心：课程卡片、分类筛选和报名状态" width="100%"></a>
+      <br><strong>AI 学堂 · 课程中心</strong>
+      <p>以清晰的课程卡片组织分类筛选、课程详情和报名状态。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/533f0e59-2bdb-45ef-b8c8-d67ce2ded305.png?x-oss-process=image/resize,w_1200/format,webp" alt="实验仪器借用看板：在借、已归还和待校准分组" width="100%"></a>
+      <br><strong>借用管理 · 状态看板</strong>
+      <p>用白底细线和分组卡片区分在借、已归还与待校准设备。</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png"><img src="https://tianshu-vpc.oss-cn-shanghai.aliyuncs.com/3549a777-7057-41a4-b631-dc4a6278c4ea.png?x-oss-process=image/resize,w_1200/format,webp" alt="焚烧发电数字孪生演示：三维厂区、设备和环保指标" width="100%"></a>
+      <br><strong>焚烧发电 · 数字孪生</strong>
+      <p>结合三维厂区、设备与环保指标展示运行态势，图中使用演示数据。</p>
+    </td>
+  </tr>
+</table>
+
+搭建时可以把这些界面作为视觉参考，向 OpenYida 说明业务、使用者、数据和设计偏好。这些是效果示例，实际应用会按你的需求创建。
+
+[查看更多应用案例 →](https://demo.aliwork.com/o/openyida/helpCenter?openyidaRoute=showcase)
 
 ## 核心能力
 
@@ -94,7 +143,7 @@ OpenYida 要求 Node.js 18 或更高版本。安装后会提供 `openyida` 和 `
 <details>
 <summary>可选：安装钉钉 Workspace CLI（dws）</summary>
 
-需要钉钉侧 A2UI 卡片编写、校验或消息操作时，可独立安装官方 [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation)：
+需要钉钉数字员工接入、A2UI 卡片编写、校验或消息操作时，可独立安装官方 [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation)：
 
 ```bash
 npm install -g dingtalk-workspace-cli
@@ -104,6 +153,10 @@ dws version
 安装完成后，直接运行 `dws <command> [args]`。各项能力以 `dws --help` 和具体子命令帮助为准。
 
 OpenYida 不内置或自动安装 dws，其版本、升级和登录由 dws 独立管理。需要访问钉钉业务时使用 `dws auth login`，并核对目标组织与账号。宜搭原生酷卡片的创建、读取和编辑器链接无需安装 dws；dws 当前的聊天卡片更新能力不等同于宜搭模板保存。其他平台安装方式见上述官方说明，具体卡片命令以已安装版本的 `--help` 为准。
+
+[数字员工审批技能](yida-skills/skills/yida-digital-employee-approval/SKILL.md)支持把钉钉数字员工接入宜搭流程，按确认规则预审材料、补件，并按需汇总跨应用受理进度。可以直接告诉 Agent：“把数字员工接到已有采购流程，材料齐全后交主管终审，并提供审批跟进工作台。”新建完整应用仍由应用技能统一编排。
+
+使用时核对目标组织、数字员工能力、数据权限与预审节点授权，先在测试流程验证；源流程状态与助理状态分别展示。消息连接和定时执行依赖所选运行环境的实际能力，本地连接不能在电脑休眠期间处理任务。公开示例使用占位符，实际身份和资源映射留在用户环境。
 
 </details>
 

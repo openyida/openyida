@@ -109,7 +109,9 @@ const path = require('path');
 // DataV component/interaction and application-theme guidance: Node 20.18.1
 // measures 2,852,227 compressed bytes; retain the next 16 KiB boundary.
 // Process sample guards and sandbox refresh together measure 2,867,335 packed bytes on Node 23.
-const MAX_TARBALL_BYTES = 2816 * 1024;
+// Digital employee approval adds five public skill documents: Node 20.18.1
+// measures 2,890,220 packed bytes, about 10 KiB above main. Advance one 16 KiB step.
+const MAX_TARBALL_BYTES = 2832 * 1024;
 // Round unpacked content to the next 16 KiB boundary.
 // Data-management UI adds 3 runtime/catalog files and 3 skill/reference files.
 // Measured 8,678,362 bytes / 654 entries; retain less than 32 KiB headroom.
@@ -280,7 +282,9 @@ const MAX_TARBALL_BYTES = 2816 * 1024;
 // Safe date clearing adds one runtime module and focused Skill/locale guidance.
 // Node 20.18.1: baseline 10,485,069 bytes / 828 files; candidate 10,497,922 / 829.
 // Advance exactly one 16 KiB unpacked step; compressed and per-file caps stay fixed.
-const MAX_UNPACKED_BYTES = 10256 * 1024;
+// Digital employee guidance measures 10,521,531 unpacked bytes (+23,438 vs main).
+// Round to the next 16 KiB boundary; the per-file cap remains unchanged.
+const MAX_UNPACKED_BYTES = 10288 * 1024;
 // Plan confirmation payload and explicit part rebase add two runtime modules.
 // app-entry/fix-theme commands and the WAF-safe authoring guidance add three packaged files.
 // Shared source-repair diagnostics and their skill contract add two packaged files.
@@ -334,10 +338,14 @@ const MAX_UNPACKED_BYTES = 10256 * 1024;
 // Feedback submission and attachment handling add two runtime modules.
 // Local feedback diagnostics add one runtime module.
 // The single-record date-clear helper adds exactly one packaged file.
-const MAX_ENTRY_COUNT = 829;
+// Digital employee approval adds its entry and four focused references.
+const MAX_ENTRY_COUNT = 834;
 const MAX_SINGLE_FILE_BYTES = 512 * 1024;
 
 const REQUIRED_PACKAGE_FILES = [
+  'yida-skills/skills/yida-digital-employee-approval/SKILL.md',
+  ...['access', 'data-and-privacy', 'operations', 'workbench']
+    .map(name => `yida-skills/skills/yida-digital-employee-approval/references/${name}.md`),
   'lib/core/form-date-clear.js',
   'yida-skills/skills/report-to-native-datav/SKILL.md',
   'lib/app/datav.js',

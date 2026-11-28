@@ -1,0 +1,51 @@
+[
+  {
+    "id": "digital-approval-existing-process",
+    "prompt": "把我们已有的钉钉数字员工接到已有宜搭采购流程，检查材料，缺件时留言，符合规则后交主管终审。",
+    "expectedSkill": "yida-digital-employee-approval",
+    "mustNotTrigger": ["yida-agent-center", "yida-task-center"]
+  },
+  {
+    "id": "digital-approval-cross-app",
+    "prompt": "已有宜搭受理工作台，汇总不同应用提交给数字员工的审批，分开显示员工预审进度和源流程状态。",
+    "expectedSkill": "yida-digital-employee-approval"
+  },
+  {
+    "id": "digital-approval-recover",
+    "prompt": "数字员工在宜搭原流程已经预审通过，但受理台账还显示待处理，帮我排查恢复，不要重复审批。",
+    "expectedSkill": "yida-digital-employee-approval"
+  },
+  {
+    "id": "digital-approval-new-app",
+    "prompt": "从零搭建一个宜搭采购审批应用，包含钉钉数字员工预审、补件和审批跟进工作台。",
+    "expectedSkill": "yida-app"
+  },
+  {
+    "id": "digital-approval-vs-personal-todo",
+    "prompt": "只查询我在宜搭当前应用有几条待审批，不创建数字员工，也不搭建工作台。",
+    "expectedSkill": "yida-data-management",
+    "mustNotTrigger": ["yida-digital-employee-approval"],
+    "forbiddenDefaultSkills": ["yida-digital-employee-approval"]
+  },
+  {
+    "id": "digital-approval-vs-delegation",
+    "prompt": "我休假期间把宜搭流程设置成在职代理人处理，不需要数字员工。",
+    "expectedSkill": "yida-agent-center",
+    "mustNotTrigger": ["yida-digital-employee-approval"],
+    "forbiddenDefaultSkills": ["yida-digital-employee-approval"]
+  },
+  {
+    "id": "digital-approval-vs-group-notice",
+    "prompt": "用宜搭集成自动化每天统计订单并通知钉钉群，不接入数字员工，不执行审批。",
+    "expectedSkill": "yida-integration",
+    "mustNotTrigger": ["yida-digital-employee-approval"],
+    "forbiddenDefaultSkills": ["yida-digital-employee-approval"]
+  },
+  {
+    "id": "digital-approval-vs-page-avatar",
+    "prompt": "只给已有宜搭 Canvas 页面增加一个虚拟人形象展示，不创建钉钉数字员工，也不处理审批。",
+    "expectedSkill": "yida-canvas-custom-page",
+    "mustNotTrigger": ["yida-digital-employee-approval"],
+    "forbiddenDefaultSkills": ["yida-digital-employee-approval"]
+  }
+]

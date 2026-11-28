@@ -292,6 +292,8 @@ openyida copy
 
 ## 子技能目录
 
+钉钉数字员工接入已有宜搭审批、预审补件、受理跟进和运行排障加载 \`yida-digital-employee-approval\`。新建完整应用先用 \`yida-app\`，由其按阶段加载该场景技能。数字员工身份与连接由独立安装的 DWS 管理；普通个人待办、流程代理、群机器人、宜搭内置 AI 助理和虚拟人形象不触发。仅说“数字人”且含义不明时先确认产品与任务。
+
 一般门户、首页和工作台默认使用自定义页面，通过 \`yida-create-page\` 创建并交给 Canvas 开发。用户明确要求宜搭原生门户或明确排除用自定义页面做门户时，加载 \`yida-create-portal\`，使用 \`create-portal\`。
 
 已有流程的当前任务查询、流程审批转交或管理员转交，直接加载 \`yida-data-management\`，使用 \`data query process-tasks\` 和 \`data transfer task\`，并回读实际处理人。修改流程中的转交操作权限才使用 \`yida-process-rule\`。
@@ -306,7 +308,7 @@ openyida copy
 | \`yida-skills/app\` | 从零搭应用、导航、多语言、AI 老应用主题升级 | \`yida-app\`, \`yida-create-app\`, \`yida-nav-group\`, \`yida-i18n\`, \`yida-upgrade-app-theme\`（仅明确要求升级，必须 ask_human 确认） |
 | \`yida-skills/design\` | 完整应用需求分析、产品 PRD、单页 UI 改造、主页面视觉设计、应用主题色、全局换肤、图片素材 | \`yida-requirement-analysis\`, \`yida-prd\`, \`yida-design\`, \`yida-image-assets\` |
 | \`yida-skills/form\` | 表单字段、公式、校验、业务规则、批量录入、数据记录、日期为空、日期区间筛选 | \`yida-create-form-page\`, \`yida-formula\`, \`yida-formula-evaluate\`, \`yida-business-rule\`, \`yida-canvas-table-form\`, \`yida-table-form\`, \`yida-data-management\` |
-| \`yida-skills/process\` | 审批、流程表单、流程规则、代理人 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\` |
+| \`yida-skills/process\` | 审批、流程表单、流程规则、代理人、钉钉数字员工预审与补件 | \`yida-create-process\`, \`yida-process-rule\`, \`yida-agent-center\`, \`yida-digital-employee-approval\` |
 | \`yida-skills/page\` | 自定义展示页、宜搭原生门户、YidaCodeCanvas 组件、dataBinding、DataBridge、轮询刷新列表或 KPI、历史平台 JSX 组件页面维护、发布、导航壳、PPT | \`yida-create-page\`, \`yida-create-portal\`, \`yida-canvas-custom-page\`, \`yida-custom-page\`, \`yida-canvas-data-binding\`, \`yida-canvas-upgrade\`, \`yida-publish-page\`, \`yida-openyida-publish-guard\`, \`yida-density\`, \`yida-nav-shell\`, \`yida-ppt-slider\` |
 | \`yida-skills/analytics\` | 用户显式指定宜搭原生数据卡片；报表、统计、图表、Recharts、ECharts、看板、驾驶舱；报表转原生大屏并对照 | \`yida-data-card\`, \`yida-report\`, \`yida-rechart\`, \`yida-chart\`, \`yida-dashboard\`, \`yida-datav\`, \`report-to-native-datav\` |
 | \`yida-skills/integration\` | 明确指定宜搭原生酷卡片；连接器、钉钉开放平台、外部 API、数据源、集成自动化 | \`yida-cool-card\`, \`yida-integration\`, \`yida-dingtalk-openapi\`, \`yida-connector\`, \`yida-connector-safe-actions\`, \`yida-data-source-connectors\` |

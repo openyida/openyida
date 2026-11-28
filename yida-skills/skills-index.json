@@ -4,6 +4,19 @@
   "entry": "openyida",
   "skills": [
     {
+      "name": "yida-digital-employee-approval",
+      "path": "skills/yida-digital-employee-approval/SKILL.md",
+      "display_name": "数字员工审批",
+      "description": "将钉钉数字员工接入宜搭流程，按确认规则预审、补件并跟进跨应用受理记录；新建完整应用由 yida-app 编排。",
+      "category": "yida-skills/process",
+      "tags": ["钉钉数字员工", "数字员工审批", "材料预审", "补件", "审批跟进"],
+      "aliases": ["数字人审批", "AI预审", "digital-employee-approval"],
+      "positive_signals": ["把钉钉数字员工接入已有宜搭审批", "数字员工检查材料并补件", "运行数字员工预审", "排查数字员工审批与台账不同步", "汇总提交给数字员工的跨应用审批"],
+      "negative_signals": ["从零创建完整应用由yida-app编排", "普通个人待办查询", "流程代理人", "机器人群通知", "宜搭内置AI助理", "虚拟人形象或视频"],
+      "command_ids": ["get-schema", "data", "form-view", "custom-button"],
+      "requires_login": true
+    },
+    {
       "name": "yida-print-template",
       "path": "skills/yida-print-template/SKILL.md",
       "display_name": "原生打印模板",
@@ -2011,8 +2024,12 @@
     {
       "name": "yida-skills/process",
       "display_name": "流程审批",
-      "description": "流程表单创建、已有流程规则配置、审批节点/分支/字段权限和流程代理。",
+      "description": "流程表单创建、已有流程规则配置、审批节点/分支/字段权限、流程代理及钉钉数字员工预审接入。",
       "signals": [
+        "数字员工",
+        "数字人审批",
+        "AI预审",
+        "补件",
         "审批",
         "流程表单",
         "流程规则",
