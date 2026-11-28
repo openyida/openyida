@@ -38,9 +38,9 @@ openyida code-workspace pull APP_ID ./new-workspace --json
 openyida code-workspace check APP_ID ./new-workspace --json
 ```
 
-pull 只写入不存在的新目录，逐文件核验字节数及 SHA-256，不覆盖已有编辑。`--snapshot ID` 可导出历史快照，历史导出不能直接作为当前编辑基线提交。
+pull 从固定快照的 downloadSourceArchive 接口获取 ZIP，核对 workspace.json、文件集合、路径、字节数及 SHA-256 后才写入不存在的新目录，不覆盖已有编辑。`--snapshot ID` 仅能导出服务端仍允许读取的历史快照；普通应用启用旧草稿回收后仅允许读取当前草稿，收到 CODE_WORKSPACE_DRAFT_CONFLICT 时重新拉取当前版本，不自动覆盖本地编辑。
 
-源码 project.json 须明确声明 toolchainRef、lockfilePath、lockfileHash、runtimeAbi、entries。锁文件摘要必须匹配真实文件；entries 是入口 ID 到源码路径的映射。当前元数据不回传冻结配方，缺少配置时报告缺口，不猜工具链。check 只检查目录及配置，不编译或执行源码。
+源码 project.json 明确声明 toolchainRef、lockfilePath、lockfileHash、runtimeAbi、entries；没有 project.json 时使用固定快照 ZIP 中的 buildRecipe 和 entries，保存在 .openyida/workspace.json。锁文件摘要必须匹配真实文件；entries 是入口 ID 到源码路径的映射。缺少配置时报告缺口，不猜工具链。check 只检查目录及配置，不编译或执行源码。
 
 ## 一轮修改应用一次
 
@@ -55,6 +55,14 @@ openyida code-workspace push APP_ID ./new-workspace --json
 单文件编辑、保存及编译预览只在本地完成，不得每改一个文件就 push 或登记构建。源码保存不要求编译成功。
 
 ## 登记与正式发布
+
+源码草稿通过 push 调用 codeWorkspace/saveDraft 或 savePatch 保存，不要求编译成功，不发布应用。要将已登记构建保存到测试版本而不正式发布，执行：
+
+```bash
+openyida code-workspace save-test-draft APP_ID ./new-workspace --draft-version VERSION --publish-id STABLE_ID --json
+```
+
+该命令使用 yidaAppVersion/saveWorkspaceDraft 并回读 getWorkspaceDraft，只绑定测试版本构建；不调用 publishDraft。正式发布仍须显式执行 publish。
 
 自定义页面仍是实际访问入口；代码工作区不是页面。每个页面的 `YidaCodeCanvas.props.codeBundle` 引用一个构建入口：`{"version":"2","workspaceId":"...","entryId":"home"}`。entryId 必须在 project.json 和登记后的构建清单中存在，实际 JS/CSS 由批准的运行清单解析，不在 Schema 内复制源码或构建代码。
 

@@ -96,6 +96,7 @@
     "@babel/traverse": "^7.29.12",
     "@babel/types": "^7.29.11",
     "esprima": "4.0.1",
+    "fflate": "^0.8.3",
     "globals": "^17.11.0",
     "js-yaml": "^4.3.2",
     "uglify-js": "^3.19.3"

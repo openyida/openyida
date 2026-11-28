@@ -7,6 +7,21 @@ jest.mock('../lib/code-workspace/api', () => ({ createWorkspaceApi: jest.fn() })
 const { execute, parseArgs, run } = require('../lib/code-workspace');
 const { sha256, collectFiles, describe, writeState } = require('../lib/code-workspace/files');
 const { createWorkspaceApi } = require('../lib/code-workspace/api');
+const { zipSync } = require('fflate');
+const archiveRecipe = { toolchainRef: 'frozen-v1', lockfilePath: 'lock.json', lockfileHash: sha256(Buffer.from('{}')), runtimeAbi: 'canvas-v2' };
+function archive(snapshot, files, recipe = archiveRecipe) {
+  return zipSync({ 'workspace.json': Buffer.from(JSON.stringify({ ...snapshot, formatVersion: 1,
+    buildRecipe: recipe, entries: recipe.entries })), ...Object.fromEntries(Object.entries(files).map(([name, bytes]) => ['files/' + name, bytes])) });
+}
+
+test('archive validation rejects foreign identities, changed recipes and unexpected paths', () => {
+  const { readSourceArchive } = require('../lib/code-workspace/archive');
+  const snapshot = { ...identity, buildRecipeSha256: sha256(Buffer.from(JSON.stringify(archiveRecipe))), files: {} };
+  expect(() => readSourceArchive(archive({ ...snapshot, workspaceId: 'other' }, {}), snapshot)).toThrow('identity');
+  expect(() => readSourceArchive(archive(snapshot, {}, { ...archiveRecipe, toolchainRef: 'other' }), snapshot)).toThrow('recipe');
+  expect(() => readSourceArchive(archive(snapshot, { '../escape': Buffer.from('x') }), snapshot)).toThrow('path');
+  expect(() => readSourceArchive(archive(snapshot, { 'unlisted.ts': Buffer.from('x') }), snapshot)).toThrow('outside');
+});
 
 let root;
 beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'workspace-test-')); });
@@ -121,13 +136,13 @@ test.each(['different files', 'later revision', 'readback unavailable'])('uncert
 test('pull preserves binary bytes, refuses overwrite and verifies all bytes before creating output', async () => {
   const target = path.join(root, 'pull');
   const bytes = Buffer.from([0, 255, 19]);
-  const snapshot = { ...identity, files: { 'assets/a.png': { size: bytes.length, sha256: sha256(bytes) } } };
-  const api = { get: jest.fn().mockResolvedValue(snapshot), download: jest.fn().mockResolvedValue(bytes) };
+  const snapshot = { ...identity, buildRecipeSha256: sha256(Buffer.from(JSON.stringify(archiveRecipe))), files: { 'assets/a.png': { size: bytes.length, sha256: sha256(bytes) } } };
+  const api = { get: jest.fn().mockResolvedValue(snapshot), downloadArchive: jest.fn().mockResolvedValue(archive(snapshot, { 'assets/a.png': bytes })) };
   await execute({ action: 'pull', appType: 'APP_A', directory: target }, api);
   expect(fs.readFileSync(path.join(target, 'assets/a.png'))).toEqual(bytes);
   await expect(execute({ action: 'pull', appType: 'APP_A', directory: target }, api)).rejects.toThrow('never overwritten');
   const badTarget = path.join(root, 'bad');
-  api.download.mockResolvedValue(Buffer.from('bad'));
+  api.downloadArchive.mockResolvedValue(archive(snapshot, { 'assets/a.png': Buffer.from('bad') }));
   await expect(execute({ action: 'pull', appType: 'APP_A', directory: badTarget }, api)).rejects.toMatchObject({ code: 'CODE_WORKSPACE_INTEGRITY_ERROR' });
   expect(fs.existsSync(badTarget)).toBe(false);
 });
@@ -186,6 +201,11 @@ test('register verifies frozen output, then publish explicitly uses the register
     await execute({ action: 'register', appType: 'APP_A', directory: root, 'build-dir': buildRoot }, api);
     expect(api.multipart).toHaveBeenCalledWith('registerBuild', expect.objectContaining({ uploadAttempt: buildId }), expect.any(Object));
     expect(api.version).not.toHaveBeenCalled();
+    const draft = await execute({ action: 'save-test-draft', appType: 'APP_A', directory: root, 'draft-version': '1.2', 'publish-id': 'P1' }, api);
+    expect(draft).toMatchObject({ published: false, testDraftReadbackVerified: true });
+    expect(api.version.mock.calls.map(call => call[0])).toEqual(['startTest', 'saveWorkspaceDraft', 'getWorkspaceDraft']);
+    api.version.mockClear();
+    api.enterTest.mockClear();
     const result = await execute({ action: 'publish', appType: 'APP_A', directory: root, 'draft-version': '1.2', 'publish-id': 'P1' }, api);
     expect(api.enterTest).toHaveBeenCalledTimes(1);
     expect(api.version.mock.calls).toEqual([
@@ -199,6 +219,28 @@ test('register verifies frozen output, then publish explicitly uses the register
   } finally {
     fs.rmSync(buildRoot, { recursive: true, force: true });
   }
+});
+
+test('pull retains the server recipe when source has no invented project.json', async () => {
+  const recipe = project();
+  fs.unlinkSync(path.join(root, 'project.json'));
+  const files = collectFiles(root);
+  const snapshot = { ...identity, buildRecipeSha256: sha256(Buffer.from(JSON.stringify(archiveRecipe))), files: describe(files) };
+  const target = path.join(root, 'server-recipe');
+  const api = { get: jest.fn().mockResolvedValue(snapshot), downloadArchive: jest.fn().mockResolvedValue(archive(snapshot, files, recipe)) };
+  await execute({ action: 'pull', appType: 'APP_A', directory: target }, api);
+  expect(fs.existsSync(path.join(target, 'project.json'))).toBe(false);
+  expect(await execute({ action: 'check', appType: 'APP_A', directory: target }, null)).toMatchObject({ valid: true, entries: recipe.entries });
+  fs.writeFileSync(path.join(target, 'lock.json'), '{}\n');
+  const savedFiles = describe(collectFiles(target));
+  const saved = { ...snapshot, revision: snapshot.revision + 1, sourceSnapshotId: 'new-snapshot', files: savedFiles };
+  api.get.mockImplementation(async action => action === 'limits'
+    ? { maxSourceFileCount: 1000, maxSourceSnapshotBytes: 10485760 } : action === 'current' ? snapshot : saved);
+  api.multipart = jest.fn().mockResolvedValue(saved);
+  await execute({ action: 'push', appType: 'APP_A', directory: target }, api);
+  expect(api.multipart.mock.calls[0][1].lockfileHash).toBe(sha256(Buffer.from('{}\n')));
+  expect(await execute({ action: 'check', appType: 'APP_A', directory: target }, null)).toMatchObject({ valid: true });
+  expect(fs.existsSync(path.join(target, 'project.json'))).toBe(false);
 });
 
 test('pull never installs repository metadata supplied by a remote snapshot', async () => {
