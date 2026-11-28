@@ -94,7 +94,7 @@ OpenYida 要求 Node.js 18 或更高版本。安装后会提供 `openyida` 和 `
 <details>
 <summary>可选：安装钉钉 Workspace CLI（dws）</summary>
 
-需要钉钉侧 A2UI 卡片编写、校验或消息操作时，可独立安装官方 [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation)：
+需要钉钉数字员工接入、A2UI 卡片编写、校验或消息操作时，可独立安装官方 [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation)：
 
 ```bash
 npm install -g dingtalk-workspace-cli
@@ -104,6 +104,10 @@ dws version
 安装完成后，直接运行 `dws <command> [args]`。各项能力以 `dws --help` 和具体子命令帮助为准。
 
 OpenYida 不内置或自动安装 dws，其版本、升级和登录由 dws 独立管理。需要访问钉钉业务时使用 `dws auth login`，并核对目标组织与账号。宜搭原生酷卡片的创建、读取和编辑器链接无需安装 dws；dws 当前的聊天卡片更新能力不等同于宜搭模板保存。其他平台安装方式见上述官方说明，具体卡片命令以已安装版本的 `--help` 为准。
+
+[数字员工审批技能](yida-skills/skills/yida-digital-employee-approval/SKILL.md)支持把钉钉数字员工接入宜搭流程，按确认规则预审材料、补件，并按需汇总跨应用受理进度。可以直接告诉 Agent：“把数字员工接到已有采购流程，材料齐全后交主管终审，并提供审批跟进工作台。”新建完整应用仍由应用技能统一编排。
+
+使用时核对目标组织、数字员工能力、数据权限与预审节点授权，先在测试流程验证；源流程状态与助理状态分别展示。消息连接和定时执行依赖所选运行环境的实际能力，本地连接不能在电脑休眠期间处理任务。公开示例使用占位符，实际身份和资源映射留在用户环境。
 
 </details>
 

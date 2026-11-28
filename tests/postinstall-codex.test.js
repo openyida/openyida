@@ -68,9 +68,19 @@ function expectSkillsPlugin() {
   expect(fs.existsSync(path.join(root, 'skills', 'openyida', 'SKILL.md'))).toBe(true);
   const entry = fs.readFileSync(path.join(root, 'skills', 'openyida', 'SKILL.md'), 'utf8');
   expect(entry).toContain('按 `yida-app` 的「本次搭建依据」');
-  for (const name of ['yida-app', 'yida-design', 'yida-requirement-analysis']) {
+  for (const name of ['yida-app', 'yida-design', 'yida-requirement-analysis', 'yida-digital-employee-approval']) {
     expect(fs.readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8'))
       .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills', 'skills', name, 'SKILL.md'), 'utf8'));
+  }
+  const employee = readJson(path.join(root, 'skills', 'openyida', 'skills-index.json')).skills
+    .find(skill => skill.name === 'yida-digital-employee-approval');
+  expect(employee).toMatchObject({ category: 'yida-skills/process' });
+  expect(fs.existsSync(path.resolve(root, employee.path))).toBe(true);
+  expect(entry).toContain('`yida-digital-employee-approval`');
+  const referenceDir = 'yida-digital-employee-approval/references';
+  for (const file of fs.readdirSync(path.join(ROOT, 'yida-skills/skills', referenceDir))) {
+    expect(fs.readFileSync(path.join(root, 'skills', referenceDir, file), 'utf8'))
+      .toBe(fs.readFileSync(path.join(ROOT, 'yida-skills/skills', referenceDir, file), 'utf8'));
   }
   expect(fs.existsSync(path.join(root, 'assets', 'logo.svg'))).toBe(true);
   expect(fs.readFileSync(path.join(tempHome, '.codex', 'config.toml'), 'utf8'))

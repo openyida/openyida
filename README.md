@@ -98,7 +98,7 @@ If Codex is already installed, OpenYida also imports a local Codex plugin during
 <details>
 <summary>Optional: install DingTalk Workspace CLI (dws)</summary>
 
-For DingTalk A2UI authoring, validation or messaging, install the official [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation) separately:
+For DingTalk digital employees, A2UI authoring, validation or messaging, install the official [DingTalk Workspace CLI](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli#installation) separately:
 
 ```bash
 npm install -g dingtalk-workspace-cli
@@ -108,6 +108,10 @@ dws version
 Run the installed `dws <command> [args]` directly. Check `dws --help` and the relevant subcommand's help for supported options.
 
 OpenYida does not bundle or automatically install dws. Dws manages its own version, updates and login. Use `dws auth login` for DingTalk business access and verify the target organization and account. Native YiDA cool-card creation, reads and editor links work without dws; updating a chat card through dws does not save a YiDA template. See the official instructions for other installation methods and check the installed command's `--help` before use.
+
+The [digital employee approval skill](yida-skills/skills/yida-digital-employee-approval/SKILL.md) connects a DingTalk digital employee to Yida workflows for authorized preliminary review, missing-material follow-up and optional tracking across applications. Ask your agent: “Connect our digital employee to the existing purchase workflow, check the required materials, hand final approval to a manager, and provide a tracking workspace.” Complete new applications still use the app skill's orchestration.
+
+Verify the organization, employee capabilities, data access and review-node authorization on a test workflow first. Assistant progress and source workflow status remain separate. Message connections and scheduling depend on the selected execution environment; a local connection cannot process tasks while the computer sleeps. Public examples use placeholders; actual identities and resource mappings stay in the user's environment.
 
 </details>
 
